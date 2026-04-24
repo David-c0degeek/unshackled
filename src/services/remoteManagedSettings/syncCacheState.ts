@@ -22,7 +22,7 @@
  */
 
 import { join } from 'path'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { getUnshackledConfigHomeDir } from '../../utils/envUtils.js'
 import { readFileSync } from '../../utils/fileRead.js'
 import { stripBOM } from '../../utils/jsonRead.js'
 import { resetSettingsCache } from '../../utils/settings/settingsCache.js'
@@ -49,7 +49,7 @@ export function setEligibility(v: boolean): boolean {
 }
 
 export function getSettingsPath(): string {
-  return join(getClaudeConfigHomeDir(), SETTINGS_FILENAME)
+  return join(getUnshackledConfigHomeDir(), SETTINGS_FILENAME)
 }
 
 // sync IO — settings pipeline is sync. fileRead and jsonRead are leaves;

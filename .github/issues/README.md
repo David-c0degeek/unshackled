@@ -1,6 +1,6 @@
-# Claude Code Public Build - Implementation Issues
+# Unshackled Public Build - Implementation Issues
 
-This directory tracks missing implementations for the public build of Claude Code CLI.
+This directory tracks missing implementations for the public build of Unshackled CLI.
 
 ## Priority Summary
 

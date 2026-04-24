@@ -304,14 +304,14 @@ missing import is only the visible edge of a broader absent subsystem.
 ## Useful Entry Points
 
 - Feature-aware build logic:
-  [scripts/build.ts](/Users/paolo/Repos/claude-code/scripts/build.ts)
+  [scripts/build.ts](/Users/paolo/Repos/unshackled/scripts/build.ts)
 - Feature-gated command imports:
-  [src/commands.ts](/Users/paolo/Repos/claude-code/src/commands.ts)
+  [src/commands.ts](/Users/paolo/Repos/unshackled/src/commands.ts)
 - Feature-gated tool imports:
-  [src/tools.ts](/Users/paolo/Repos/claude-code/src/tools.ts)
+  [src/tools.ts](/Users/paolo/Repos/unshackled/src/tools.ts)
 - Feature-gated task imports:
-  [src/tasks.ts](/Users/paolo/Repos/claude-code/src/tasks.ts)
+  [src/tasks.ts](/Users/paolo/Repos/unshackled/src/tasks.ts)
 - Feature-gated query behavior:
-  [src/query.ts](/Users/paolo/Repos/claude-code/src/query.ts)
+  [src/query.ts](/Users/paolo/Repos/unshackled/src/query.ts)
 - Feature-gated CLI entry paths:
-  [src/entrypoints/cli.tsx](/Users/paolo/Repos/claude-code/src/entrypoints/cli.tsx)
+  [src/entrypoints/cli.tsx](/Users/paolo/Repos/unshackled/src/entrypoints/cli.tsx)

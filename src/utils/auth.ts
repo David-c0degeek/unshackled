@@ -50,7 +50,7 @@ import {
 } from './config.js'
 import { logAntError, logForDebugging } from './debug.js'
 import {
-  getClaudeConfigHomeDir,
+  getUnshackledConfigHomeDir,
   isBareMode,
   isEnvTruthy,
   isRunningOnHomespace,
@@ -86,7 +86,7 @@ const DEFAULT_API_KEY_HELPER_TTL = 5 * 60 * 1000
  * to the user's ~/.claude/settings.json API-key config (apiKeyHelper,
  * env.ANTHROPIC_API_KEY, env.ANTHROPIC_AUTH_TOKEN). Those settings exist for
  * the user's terminal CLI, not managed sessions. Without this guard, a user
- * who runs `claude` in their terminal with an API key sees every CCD session
+ * who runs `unshackled` in their terminal with an API key sees every CCD session
  * also use that key — and fail if it's stale/wrong-org.
  */
 function isManagedOAuthContext(): boolean {
@@ -102,7 +102,7 @@ export function isAnthropicAuthEnabled(): boolean {
   // --bare: API-key-only, never OAuth.
   if (isBareMode()) return false
 
-  // `claude ssh` remote: ANTHROPIC_UNIX_SOCKET tunnels API calls through a
+  // `unshackled ssh` remote: ANTHROPIC_UNIX_SOCKET tunnels API calls through a
   // local auth-injecting proxy. The launcher sets CLAUDE_CODE_OAUTH_TOKEN as a
   // placeholder iff the local side is a subscriber (so the remote includes the
   // oauth-2025 beta header to match what the proxy will inject). The remote's
@@ -1377,7 +1377,7 @@ let lastCredentialsMtimeMs = 0
 async function invalidateOAuthCacheIfDiskChanged(): Promise<void> {
   try {
     const { mtimeMs } = await stat(
-      join(getClaudeConfigHomeDir(), '.credentials.json'),
+      join(getUnshackledConfigHomeDir(), '.credentials.json'),
     )
     if (mtimeMs !== lastCredentialsMtimeMs) {
       lastCredentialsMtimeMs = mtimeMs
@@ -1539,7 +1539,7 @@ async function checkAndRefreshOAuthTokenIfNeededImpl(
   }
 
   // Tokens are still expired, try to acquire lock and refresh
-  const claudeDir = getClaudeConfigHomeDir()
+  const claudeDir = getUnshackledConfigHomeDir()
   await mkdir(claudeDir, { recursive: true })
 
   let release
@@ -1989,7 +1989,7 @@ export type OrgValidationResult =
  * token's org (network error, missing profile data), validation fails.
  */
 export async function validateForceLoginOrg(): Promise<OrgValidationResult> {
-  // `claude ssh` remote: real auth lives on the local machine and is injected
+  // `unshackled ssh` remote: real auth lives on the local machine and is injected
   // by the proxy. The placeholder token can't be validated against the profile
   // endpoint. The local side already ran this check before establishing the session.
   if (process.env.ANTHROPIC_UNIX_SOCKET) {

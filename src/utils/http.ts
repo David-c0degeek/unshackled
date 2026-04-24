@@ -46,12 +46,12 @@ export function getMCPUserAgent(): string {
     parts.push(`client-app/${process.env.CLAUDE_AGENT_SDK_CLIENT_APP}`)
   }
   const suffix = parts.length > 0 ? ` (${parts.join(', ')})` : ''
-  return `claude-code/${MACRO.VERSION}${suffix}`
+  return `unshackled/${MACRO.VERSION}${suffix}`
 }
 
 // User-Agent for WebFetch requests to arbitrary sites. `Claude-User` is
 // Anthropic's publicly documented agent for user-initiated fetches (what site
-// operators match in robots.txt); the claude-code suffix lets them distinguish
+// operators match in robots.txt); the unshackled suffix lets them distinguish
 // local CLI traffic from claude.ai server-side fetches.
 export function getWebFetchUserAgent(): string {
   return `Claude-User (${getClaudeCodeUserAgent()}; +https://support.anthropic.com/)`

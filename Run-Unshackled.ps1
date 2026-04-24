@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Launch the free-code CLI from source on Windows 11.
+    Launch the unshackled CLI from source on Windows 11.
 
 .DESCRIPTION
     Installs npm dependencies when missing, then runs the CLI directly from
@@ -12,20 +12,20 @@
     bundling issue is resolved upstream).
 
 .PARAMETER Build
-    Build a compiled binary first (bun run build), then run it.
+    Build a compiled binary first (bun run build, then run it.
     The default is to run from source, which is always reliable.
 
 .PARAMETER Rebuild
     Implies -Build.  Also force-reinstalls dependencies before building.
 
 .PARAMETER Args
-    Arguments forwarded to the Claude Code CLI.
+    Arguments forwarded to the unshackled CLI.
 
 .EXAMPLE
-    .\Run-FreeCode.ps1
-    .\Run-FreeCode.ps1 --dangerously-skip-permissions
-    .\Run-FreeCode.ps1 -Build
-    .\Run-FreeCode.ps1 -Rebuild
+    .\Run-Unshackled.ps1
+    .\Run-Unshackled.ps1 --dangerously-skip-permissions
+    .\Run-Unshackled.ps1 -Build
+    .\Run-Unshackled.ps1 -Rebuild
 #>
 [CmdletBinding()]
 param(
@@ -70,7 +70,7 @@ if ($Rebuild -or -not (Test-Path $nodeModules)) {
 #     native executable.  On Windows the output is cli.exe.
 # ---------------------------------------------------------------------------
 if ($Build -or $Rebuild) {
-    Write-Host "Building free-code..." -ForegroundColor Cyan
+    Write-Host "Building unshackled..." -ForegroundColor Cyan
     & bun run --cwd $root build
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: build failed (exit $LASTEXITCODE)." -ForegroundColor Red

@@ -711,7 +711,7 @@ export const BINARY_HIJACK_VARS = /^(LD_|DYLD_|PATH$)/
  * Strip ALL leading env var prefixes from a command, regardless of whether the
  * var name is in the safe-list.
  *
- * Used for deny/ask rule matching: when a user denies `claude` or `rm`, the
+ * Used for deny/ask rule matching: when a user denies `unshackled` or `rm`, the
  * command should stay blocked even if prefixed with arbitrary env vars like
  * `FOO=bar claude`. The safe-list restriction in stripSafeWrappers is correct
  * for allow rules (prevents `DOCKER_HOST=evil docker ps` from auto-matching
@@ -820,7 +820,7 @@ function filterRulesByContentsMatchingInput(
   // like `nohup FOO=bar timeout 5 claude` where:
   //   1. stripSafeWrappers strips `nohup` → `FOO=bar timeout 5 claude`
   //   2. stripAllLeadingEnvVars strips `FOO=bar` → `timeout 5 claude`
-  //   3. stripSafeWrappers strips `timeout 5` → `claude` (deny match)
+  //   3. stripSafeWrappers strips `timeout 5` → `unshackled` (deny match)
   //
   // Without iteration, single-pass compositions miss multi-layer interleaving.
   if (stripAllEnvVars) {

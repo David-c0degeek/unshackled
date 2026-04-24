@@ -24,7 +24,7 @@ async function _temp() {
   if (true && !isClaudeAISubscriber()) {
     return {
       key: "chrome-requires-subscription",
-      jsx: <Text color="error">Claude in Chrome requires a claude.ai subscription</Text>,
+      jsx: <Text color="error">Claude in Chrome requires a claude.ai account</Text>,
       priority: "immediate",
       timeoutMs: 5000
     };

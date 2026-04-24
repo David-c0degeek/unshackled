@@ -97,7 +97,7 @@ async function createFork(customTitle?: string): Promise<{
 
   // Content-replacement entries for the original session. These record which
   // tool_result blocks were replaced with previews by the per-message budget.
-  // Without them in the fork JSONL, `claude -r {forkId}` reconstructs state
+  // Without them in the fork JSONL, `unshackled -r {forkId}` reconstructs state
   // with an empty replacements Map → previously-replaced results are classified
   // as FROZEN and sent as full content (prompt cache miss + permanent overage).
   // sessionId must be rewritten since loadTranscriptFile keys lookup by the

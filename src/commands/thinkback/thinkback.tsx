@@ -25,8 +25,8 @@ import { loadAllPlugins } from '../../utils/plugins/pluginLoader.js';
 import { installSelectedPlugins } from '../../utils/plugins/pluginStartupCheck.js';
 
 // Marketplace and plugin identifiers - varies by user type
-const INTERNAL_MARKETPLACE_NAME = 'claude-code-marketplace';
-const INTERNAL_MARKETPLACE_REPO = 'anthropics/claude-code-marketplace';
+const INTERNAL_MARKETPLACE_NAME = 'unshackled-marketplace';
+const INTERNAL_MARKETPLACE_REPO = 'paoloanzn/unshackled-marketplace';
 const OFFICIAL_MARKETPLACE_REPO = 'anthropics/claude-plugins-official';
 function getMarketplaceName(): string {
   return "external" === 'ant' ? INTERNAL_MARKETPLACE_NAME : OFFICIAL_MARKETPLACE_NAME;
@@ -372,7 +372,7 @@ function ThinkbackMenu(t0) {
   }
   let t7;
   if ($[16] !== handleCancel || $[17] !== t6) {
-    t7 = <Dialog title="Think Back on 2025 with Claude Code" subtitle="Generate your 2025 Claude Code Think Back (takes a few minutes to run)" onCancel={handleCancel} color="claude">{t6}</Dialog>;
+    t7 = <Dialog title="Think Back on 2025 with Unshackled" subtitle="Generate your 2025 Unshackled Think Back (takes a few minutes to run)" onCancel={handleCancel} color="claude">{t6}</Dialog>;
     $[16] = handleCancel;
     $[17] = t6;
     $[18] = t7;
@@ -381,9 +381,9 @@ function ThinkbackMenu(t0) {
   }
   return t7;
 }
-const EDIT_PROMPT = 'Use the Skill tool to invoke the "thinkback" skill with mode=edit to modify my existing Claude Code year in review animation. Ask me what I want to change. When the animation is ready, tell the user to run /think-back again to play it.';
-const FIX_PROMPT = 'Use the Skill tool to invoke the "thinkback" skill with mode=fix to fix validation or rendering errors in my existing Claude Code year in review animation. Run the validator, identify errors, and fix them. When the animation is ready, tell the user to run /think-back again to play it.';
-const REGENERATE_PROMPT = 'Use the Skill tool to invoke the "thinkback" skill with mode=regenerate to create a completely new Claude Code year in review animation from scratch. Delete the existing animation and start fresh. When the animation is ready, tell the user to run /think-back again to play it.';
+const EDIT_PROMPT = 'Use the Skill tool to invoke the "thinkback" skill with mode=edit to modify my existing Unshackled year in review animation. Ask me what I want to change. When the animation is ready, tell the user to run /think-back again to play it.';
+const FIX_PROMPT = 'Use the Skill tool to invoke the "thinkback" skill with mode=fix to fix validation or rendering errors in my existing Unshackled year in review animation. Run the validator, identify errors, and fix them. When the animation is ready, tell the user to run /think-back again to play it.';
+const REGENERATE_PROMPT = 'Use the Skill tool to invoke the "thinkback" skill with mode=regenerate to create a completely new Unshackled year in review animation from scratch. Delete the existing animation and start fresh. When the animation is ready, tell the user to run /think-back again to play it.';
 function ThinkbackFlow(t0) {
   const $ = _c(27);
   const {

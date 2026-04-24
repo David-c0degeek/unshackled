@@ -1,7 +1,7 @@
 /**
  * Protocol Handler
  *
- * Entry point for `claude --handle-uri <url>`. When the OS invokes claude
+ * Entry point for `unshackled --handle-uri <url>`. When the OS invokes claude
  * with a `claude-cli://` URL, this module:
  *   1. Parses the URI into a structured action
  *   2. Detects the user's terminal emulator

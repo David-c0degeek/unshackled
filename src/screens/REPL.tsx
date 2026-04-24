@@ -564,9 +564,9 @@ export type Props = {
   taskListId?: string;
   // Remote session config for --remote mode (uses CCR as execution engine)
   remoteSessionConfig?: RemoteSessionConfig;
-  // Direct connect config for `claude connect` mode (connects to a claude server)
+  // Direct connect config for `unshackled connect` mode (connects to a claude server)
   directConnectConfig?: DirectConnectConfig;
-  // SSH session for `claude ssh` mode (local REPL, remote tools over ssh)
+  // SSH session for `unshackled ssh` mode (local REPL, remote tools over ssh)
   sshSession?: SSHSession;
   // Thinking configuration to use when thinking is enabled
   thinkingConfig: ThinkingConfig;
@@ -1158,7 +1158,7 @@ export function REPL({
   const sessionStatus: TabStatusKind = isWaitingForApproval || isShowingLocalJSXCommand ? 'waiting' : isLoading ? 'busy' : 'idle';
   const waitingFor = sessionStatus !== 'waiting' ? undefined : toolUseConfirmQueue.length > 0 ? `approve ${toolUseConfirmQueue[0]!.tool.name}` : pendingWorkerRequest ? 'worker request' : pendingSandboxRequest ? 'sandbox request' : isShowingLocalJSXCommand ? 'dialog open' : 'input needed';
 
-  // Push status to the PID file for `claude ps`. Fire-and-forget; ps falls
+  // Push status to the PID file for `unshackled ps`. Fire-and-forget; ps falls
   // back to transcript-tail derivation when this is missing/stale.
   useEffect(() => {
     if (feature('BG_SESSIONS')) {
@@ -1401,7 +1401,7 @@ export function REPL({
     setInProgressToolUseIDs
   });
 
-  // Direct connect hook - manages WebSocket to a claude server for `claude connect` mode
+  // Direct connect hook - manages WebSocket to a claude server for `unshackled connect` mode
   const directConnect = useDirectConnect({
     config: directConnectConfig,
     setMessages,
@@ -1410,7 +1410,7 @@ export function REPL({
     tools: combinedInitialTools
   });
 
-  // SSH session hook - manages ssh child process for `claude ssh` mode.
+  // SSH session hook - manages ssh child process for `unshackled ssh` mode.
   // Same callback shape as useDirectConnect; only the transport under the
   // hood differs (ChildProcess stdin/stdout vs WebSocket).
   const sshRemote = useSSHSession({
@@ -1922,7 +1922,7 @@ export function REPL({
       // Skipped for in-session /branch: the existing ref is already correct
       // (branch preserves tool_use_ids), so there's no need to reconstruct.
       // createFork() does write content-replacement entries to the forked
-      // JSONL with the fork's sessionId, so `claude -r {forkId}` also works.
+      // JSONL with the fork's sessionId, so `unshackled -r {forkId}` also works.
       if (contentReplacementStateRef.current && entrypoint !== 'fork') {
         contentReplacementStateRef.current = reconstructContentReplacementState(messages, log.contentReplacements ?? []);
       }
@@ -2683,7 +2683,7 @@ export function REPL({
     // which was broken by SessionStart hook messages (prepended via
     // useDeferredHookMessages) and attachment messages (appended by
     // processTextPrompt) — both pushed length past 1 on turn one, so the
-    // title silently fell through to the "Claude Code" default.
+    // title silently fell through to the "Unshackled" default.
     if (!titleDisabled && !sessionTitle && !agentTitle && !haikuTitleAttemptedRef.current) {
       const firstUserMessage = newMessages.find(m => m.type === 'user' && !m.isMeta);
       const text = firstUserMessage?.type === 'user' ? getContentText(firstUserMessage.message.content) : null;
@@ -4126,7 +4126,7 @@ export function REPL({
   useEffect(() => {
     const handleSuspend = () => {
       // Print suspension instructions
-      process.stdout.write(`\nClaude Code has been suspended. Run \`fg\` to bring Claude Code back.\nNote: ctrl + z now suspends Claude Code, ctrl + _ undoes input.\n`);
+      process.stdout.write(`\nUnshackled has been suspended. Run \`fg\` to bring Unshackled back.\nNote: ctrl + z now suspends Unshackled, ctrl + _ undoes input.\n`);
     };
     const handleResume = () => {
       // Force complete component tree replacement instead of terminal clear

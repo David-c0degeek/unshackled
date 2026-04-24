@@ -952,35 +952,35 @@ export function setMeter(
   STATE.meter = meter
 
   // Initialize all counters using the provided factory
-  STATE.sessionCounter = createCounter('claude_code.session.count', {
+  STATE.sessionCounter = createCounter('unshackled.session.count', {
     description: 'Count of CLI sessions started',
   })
-  STATE.locCounter = createCounter('claude_code.lines_of_code.count', {
+  STATE.locCounter = createCounter('unshackled.lines_of_code.count', {
     description:
       "Count of lines of code modified, with the 'type' attribute indicating whether lines were added or removed",
   })
-  STATE.prCounter = createCounter('claude_code.pull_request.count', {
+  STATE.prCounter = createCounter('unshackled.pull_request.count', {
     description: 'Number of pull requests created',
   })
-  STATE.commitCounter = createCounter('claude_code.commit.count', {
+  STATE.commitCounter = createCounter('unshackled.commit.count', {
     description: 'Number of git commits created',
   })
-  STATE.costCounter = createCounter('claude_code.cost.usage', {
-    description: 'Cost of the Claude Code session',
+  STATE.costCounter = createCounter('unshackled.cost.usage', {
+    description: 'Cost of the Unshackled session',
     unit: 'USD',
   })
-  STATE.tokenCounter = createCounter('claude_code.token.usage', {
+  STATE.tokenCounter = createCounter('unshackled.token.usage', {
     description: 'Number of tokens used',
     unit: 'tokens',
   })
   STATE.codeEditToolDecisionCounter = createCounter(
-    'claude_code.code_edit_tool.decision',
+    'unshackled.code_edit_tool.decision',
     {
       description:
         'Count of code editing tool permission decisions (accept/reject) for Edit, Write, and NotebookEdit tools',
     },
   )
-  STATE.activeTimeCounter = createCounter('claude_code.active_time.total', {
+  STATE.activeTimeCounter = createCounter('unshackled.active_time.total', {
     description: 'Total active time in seconds',
     unit: 's',
   })

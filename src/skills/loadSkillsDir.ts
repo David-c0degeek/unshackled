@@ -30,7 +30,7 @@ import {
   parseEffortValue,
 } from '../utils/effort.js'
 import {
-  getClaudeConfigHomeDir,
+  getUnshackledConfigHomeDir,
   isBareMode,
   isEnvTruthy,
 } from '../utils/envUtils.js'
@@ -83,7 +83,7 @@ export function getSkillsPath(
     case 'policySettings':
       return join(getManagedFilePath(), '.claude', dir)
     case 'userSettings':
-      return join(getClaudeConfigHomeDir(), dir)
+      return join(getUnshackledConfigHomeDir(), dir)
     case 'projectSettings':
       return `.claude/${dir}`
     case 'plugin':
@@ -113,7 +113,7 @@ export function estimateSkillFrontmatterTokens(skill: Command): number {
  * Uses realpath to resolve symlinks, which is filesystem-agnostic and avoids
  * issues with filesystems that report unreliable inode values (e.g., inode 0 on
  * some virtual/container/NFS filesystems, or precision loss on ExFAT).
- * See: https://github.com/anthropics/claude-code/issues/13893
+ * See: https://github.com/paoloanzn/unshackled/issues/13893
  */
 async function getFileIdentity(filePath: string): Promise<string | null> {
   try {
@@ -637,7 +637,7 @@ async function loadSkillsFromCommandsDir(
  */
 export const getSkillDirCommands = memoize(
   async (cwd: string): Promise<Command[]> => {
-    const userSkillsDir = join(getClaudeConfigHomeDir(), 'skills')
+    const userSkillsDir = join(getUnshackledConfigHomeDir(), 'skills')
     const managedSkillsDir = join(getManagedFilePath(), '.claude', 'skills')
     const projectSkillsDirs = getProjectDirsUpToHome('skills', cwd)
 

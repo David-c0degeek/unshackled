@@ -81,9 +81,9 @@ function permissionRuleExtractPrefix(permissionRule: string): string | null {
 }
 
 /**
- * Resolve Claude Code-specific path patterns for sandbox-runtime.
+ * Resolve Unshackled-specific path patterns for sandbox-runtime.
  *
- * Claude Code uses special path prefixes in permission rules:
+ * Unshackled uses special path prefixes in permission rules:
  * - `//path` → absolute from filesystem root (becomes `/path`)
  * - `/path` → relative to settings file directory (becomes `$SETTINGS_DIR/path`)
  * - `~/path` → passed through (sandbox-runtime handles this)
@@ -164,7 +164,7 @@ function shouldAllowManagedReadPathsOnly(): boolean {
 }
 
 /**
- * Convert Claude Code settings format to SandboxRuntimeConfig format
+ * Convert Unshackled settings format to SandboxRuntimeConfig format
  * (Function exported for testing)
  *
  * @param settings Merged settings (used for sandbox config like network, ripgrep, etc.)
@@ -228,7 +228,7 @@ export function convertToSandboxRuntimeConfig(
   const allowRead: string[] = []
 
   // Always deny writes to settings.json files to prevent sandbox escape
-  // This blocks settings in the original working directory (where Claude Code started)
+  // This blocks settings in the original working directory (where Unshackled started)
   const settingsPaths = SETTING_SOURCES.map(source =>
     getSettingsFilePathForSource(source),
   ).filter((p): p is string => p !== undefined)
@@ -393,13 +393,13 @@ let settingsSubscriptionCleanup: (() => void) | undefined
 let worktreeMainRepoPath: string | null | undefined
 
 // Bare-repo files at cwd that didn't exist at config time and should be
-// scrubbed if they appear after a sandboxed command. See anthropics/claude-code#29316.
+// scrubbed if they appear after a sandboxed command. See paoloanzn/unshackled#29316.
 const bareGitRepoScrubPaths: string[] = []
 
 /**
  * Delete bare-repo files planted at cwd during a sandboxed command, before
  * Claude's unsandboxed git calls can see them. See the SECURITY block above
- * bareGitRepoFiles. anthropics/claude-code#29316.
+ * bareGitRepoFiles. paoloanzn/unshackled#29316.
  */
 function scrubBareGitRepoFiles(): void {
   for (const p of bareGitRepoScrubPaths) {

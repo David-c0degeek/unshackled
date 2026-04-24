@@ -3,7 +3,7 @@ import { homedir } from 'os'
 import { join } from 'path'
 import { fileSuffixForOauthConfig } from '../constants/oauth.js'
 import { isRunningWithBun } from './bundledMode.js'
-import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
+import { getUnshackledConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { findExecutable } from './findExecutable.js'
 import { getFsImplementation } from './fsOperations.js'
 import { which } from './which.js'
@@ -15,14 +15,14 @@ export const getGlobalClaudeFile = memoize((): string => {
   // Legacy fallback for backwards compatibility
   if (
     getFsImplementation().existsSync(
-      join(getClaudeConfigHomeDir(), '.config.json'),
+      join(getUnshackledConfigHomeDir(), '.config.json'),
     )
   ) {
-    return join(getClaudeConfigHomeDir(), '.config.json')
+    return join(getUnshackledConfigHomeDir(), '.config.json')
   }
 
   const filename = `.claude${fileSuffixForOauthConfig()}.json`
-  return join(process.env.CLAUDE_CONFIG_DIR || homedir(), filename)
+  return join(process.env.UNSHACKLED_CONFIG_DIR || homedir(), filename)
 })
 
 const hasInternetAccess = memoize(async (): Promise<boolean> => {

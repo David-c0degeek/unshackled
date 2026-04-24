@@ -3,7 +3,7 @@
  *
  * Registers the `claude-cli://` custom URI scheme with the OS,
  * so that clicking a `claude-cli://` link in a browser (or any app) will
- * invoke `claude --handle-uri <url>`.
+ * invoke `unshackled --handle-uri <url>`.
  *
  * Platform details:
  *   macOS  — Creates a minimal .app trampoline in ~/Applications with
@@ -22,7 +22,7 @@ import {
   logEvent,
 } from 'src/services/analytics/index.js'
 import { logForDebugging } from '../debug.js'
-import { getClaudeConfigHomeDir } from '../envUtils.js'
+import { getUnshackledConfigHomeDir } from '../envUtils.js'
 import { getErrnoCode } from '../errors.js'
 import { execFileNoThrow } from '../execFileNoThrow.js'
 import { getInitialSettings } from '../settings/settings.js'
@@ -31,9 +31,9 @@ import { getUserBinDir, getXDGDataHome } from '../xdg.js'
 import { DEEP_LINK_PROTOCOL } from './parseDeepLink.js'
 
 export const MACOS_BUNDLE_ID = 'com.anthropic.claude-code-url-handler'
-const APP_NAME = 'Claude Code URL Handler'
+const APP_NAME = 'Unshackled URL Handler'
 const DESKTOP_FILE_NAME = 'claude-code-url-handler.desktop'
-const MACOS_APP_NAME = 'Claude Code URL Handler.app'
+const MACOS_APP_NAME = 'Unshackled URL Handler.app'
 
 // Shared between register* (writes these paths/values) and
 // isProtocolHandlerCurrent (reads them back). Keep the writer and reader
@@ -64,8 +64,8 @@ function windowsCommandValue(claudePath: string): string {
  * Register the protocol handler on macOS.
  *
  * Creates a .app bundle where the CFBundleExecutable is a symlink to the
- * already-installed (and signed) `claude` binary. When macOS opens a
- * `claude-cli://` URL, it launches `claude` through this app bundle.
+ * already-installed (and signed) `unshackled` binary. When macOS opens a
+ * `claude-cli://` URL, it launches `unshackled` through this app bundle.
  * Claude then uses the url-handler NAPI module to read the URL from the
  * Apple Event and handles it normally.
  *
@@ -108,7 +108,7 @@ async function registerMacos(claudePath: string): Promise<void> {
   <array>
     <dict>
       <key>CFBundleURLName</key>
-      <string>Claude Code Deep Link</string>
+      <string>Unshackled Deep Link</string>
       <key>CFBundleURLSchemes</key>
       <array>
         <string>${DEEP_LINK_PROTOCOL}</string>
@@ -146,7 +146,7 @@ async function registerLinux(claudePath: string): Promise<void> {
 
   const desktopEntry = `[Desktop Entry]
 Name=${APP_NAME}
-Comment=Handle ${DEEP_LINK_PROTOCOL}:// deep links for Claude Code
+Comment=Handle ${DEEP_LINK_PROTOCOL}:// deep links for Unshackled
 ${linuxExecLine(claudePath)}
 Type=Application
 NoDisplay=true
@@ -251,7 +251,7 @@ async function resolveClaudePath(): Promise<string> {
 
 /**
  * Check whether the OS-level protocol handler is already registered AND
- * points at the expected `claude` binary. Reads the registration artifact
+ * points at the expected `unshackled` binary. Reads the registration artifact
  * directly (symlink target, .desktop Exec line, registry value) rather than
  * a cached flag in ~/.claude.json, so:
  *   - the check is per-machine (config can sync across machines; OS state can't)
@@ -313,7 +313,7 @@ export async function ensureDeepLinkProtocolRegistered(): Promise<void> {
   // doesn't generate a failure event on every startup. Marker lives in
   // ~/.claude (per-machine, not synced) rather than ~/.claude.json (can sync).
   const failureMarkerPath = path.join(
-    getClaudeConfigHomeDir(),
+    getUnshackledConfigHomeDir(),
     '.deep-link-register-failed',
   )
   try {

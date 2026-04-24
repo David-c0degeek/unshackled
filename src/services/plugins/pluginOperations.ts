@@ -2,7 +2,7 @@
  * Core plugin operations (install, uninstall, enable, disable, update)
  *
  * This module provides pure library functions that can be used by both:
- * - CLI commands (`claude plugin install/uninstall/enable/disable/update`)
+ * - CLI commands (`unshackled plugin install/uninstall/enable/disable/update`)
  * - Interactive UI (ManagePlugins.tsx)
  *
  * Functions in this module:

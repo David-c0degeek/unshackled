@@ -109,12 +109,12 @@ function pollSleepDetectionThresholdMs(backoff: BackoffConfig): number {
 }
 
 /**
- * Returns the args that must precede CLI flags when spawning a child claude
- * process. In compiled binaries, process.execPath is the claude binary itself
+ * Returns the args that must precede CLI flags when spawning a child unshackled
+ * process. In compiled binaries, process.execPath is the unshackled binary itself
  * and args go directly to it. In npm installs (node running cli.js),
  * process.execPath is the node runtime — the child spawn must pass the script
  * path as the first arg, otherwise node interprets --sdk-url as a node option
- * and exits with "bad option: --sdk-url". See anthropics/claude-code#28334.
+ * and exits with "bad option: --sdk-url". See paoloanzn/unshackled#28334.
  */
 function spawnScriptArgs(): string[] {
   if (isInBundledMode() || !process.argv[1]) {
@@ -1513,7 +1513,7 @@ export async function runBridgeLoop(
   }
 
   // In single-session mode with a known session, leave the session and
-  // environment alive so `claude remote-control --session-id=<id>` can resume.
+  // environment alive so `unshackled remote-control --session-id=<id>` can resume.
   // The backend GCs stale environments via a 4h TTL (BRIDGE_LAST_POLL_TTL).
   // Archiving the session or deregistering the environment would make the
   // printed resume command a lie — deregister deletes Firestore + Redis stream.
@@ -1529,7 +1529,7 @@ export async function runBridgeLoop(
     !fatalExit
   ) {
     logger.logStatus(
-      `Resume this session by running \`claude remote-control --continue\``,
+      `Resume this session by running \`unshackled remote-control --continue\``,
     )
     logForDebugging(
       `[bridge:shutdown] Skipping archive+deregister to allow resume of session ${initialSessionId}`,
@@ -1820,7 +1820,7 @@ export function parseArgs(args: string[]): ParsedArgs {
       createSessionInDir = false
     } else {
       return makeError(
-        `Unknown argument: ${arg}\nRun 'claude remote-control --help' for usage.`,
+        `Unknown argument: ${arg}\nRun 'unshackled remote-control --help' for usage.`,
       )
     }
   }
@@ -2082,7 +2082,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
   setCwdState(dir)
 
   // The bridge bypasses main.tsx (which renders the interactive TrustDialog via showSetupScreens),
-  // so we must verify trust was previously established by a normal `claude` session.
+  // so we must verify trust was previously established by a normal `unshackled` session.
   if (!checkHasTrustDialogAccepted()) {
     // biome-ignore lint/suspicious/noConsole:: intentional console output
     console.error(
@@ -2154,7 +2154,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
     if (!found) {
       // biome-ignore lint/suspicious/noConsole: intentional error output
       console.error(
-        `Error: No recent session found in this directory or its worktrees. Run \`claude remote-control\` to start a new one.`,
+        `Error: No recent session found in this directory or its worktrees. Run \`unshackled remote-control\` to start a new one.`,
       )
       // eslint-disable-next-line custom-rules/no-process-exit
       process.exit(1)
@@ -2252,7 +2252,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
     })
     // biome-ignore lint/suspicious/noConsole: intentional dialog output
     console.log(
-      `\nClaude Remote Control is launching in spawn mode which lets you create new sessions in this project from Claude Code on Web or your Mobile app. Learn more here: https://code.claude.com/docs/en/remote-control\n\n` +
+      `\nClaude Remote Control is launching in spawn mode which lets you create new sessions in this project from Unshackled on Web or your Mobile app. Learn more here: https://code.claude.com/docs/en/remote-control\n\n` +
         `Spawn mode for this project:\n` +
         `  [1] same-dir \u2014 sessions share the current directory (default)\n` +
         `  [2] worktree \u2014 each session gets an isolated git worktree\n\n` +
@@ -2392,7 +2392,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
       }
       // biome-ignore lint/suspicious/noConsole: intentional error output
       console.error(
-        `Error: Session ${resumeSessionId} not found. It may have been archived or expired, or your login may have lapsed (run \`claude /login\`).`,
+        `Error: Session ${resumeSessionId} not found. It may have been archived or expired, or your login may have lapsed (run \`unshackled /login\`).`,
       )
       // eslint-disable-next-line custom-rules/no-process-exit
       process.exit(1)

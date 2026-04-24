@@ -42,7 +42,7 @@ type LoadingStateProps = {
  * <LoadingState
  *   message="Loading sessions"
  *   bold
- *   subtitle="Fetching your Claude Code sessions..."
+ *   subtitle="Fetching your Unshackled sessions..."
  * />
  */
 export function LoadingState(t0) {

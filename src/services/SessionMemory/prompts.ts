@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { roughTokenCountEstimation } from '../../services/tokenEstimation.js'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { getUnshackledConfigHomeDir } from '../../utils/envUtils.js'
 import { getErrnoCode, toError } from '../../utils/errors.js'
 import { logError } from '../../utils/log.js'
 
@@ -85,7 +85,7 @@ REMEMBER: Use the Edit tool in parallel and stop. Do not continue after the edit
  */
 export async function loadSessionMemoryTemplate(): Promise<string> {
   const templatePath = join(
-    getClaudeConfigHomeDir(),
+    getUnshackledConfigHomeDir(),
     'session-memory',
     'config',
     'template.md',
@@ -110,7 +110,7 @@ export async function loadSessionMemoryTemplate(): Promise<string> {
  */
 export async function loadSessionMemoryPrompt(): Promise<string> {
   const promptPath = join(
-    getClaudeConfigHomeDir(),
+    getUnshackledConfigHomeDir(),
     'session-memory',
     'config',
     'prompt.md',

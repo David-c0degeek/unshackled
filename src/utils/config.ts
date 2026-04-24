@@ -17,7 +17,7 @@ import { registerCleanup } from './cleanupRegistry.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { getGlobalClaudeFile } from './env.js'
-import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
+import { getUnshackledConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { ConfigParseError, getErrnoCode } from './errors.js'
 import { writeFileSyncAndFlush_DEPRECATED } from './file.js'
 import { getFsImplementation } from './fsOperations.js'
@@ -131,7 +131,7 @@ export type ProjectConfig = {
     sessionId: string
     hookBased?: boolean
   }
-  /** Spawn mode for `claude remote-control` multi-session. Set by first-run dialog or `w` toggle. */
+  /** Spawn mode for `unshackled remote-control` multi-session. Set by first-run dialog or `w` toggle. */
   remoteControlSpawnMode?: 'same-dir' | 'worktree'
 }
 
@@ -382,7 +382,7 @@ export type GlobalConfig = {
   showSpinnerTree?: boolean // Whether to show the teammate spinner tree instead of pills
 
   // First start time tracking
-  firstStartTime?: string // ISO timestamp when Claude Code was first started on this machine
+  firstStartTime?: string // ISO timestamp when Unshackled was first started on this machine
 
   messageIdleNotifThresholdMs: number // How long the user has to have been idle to get a notification that Claude is done generating
 
@@ -405,8 +405,8 @@ export type GlobalConfig = {
   inputNeededNotifEnabled?: boolean
   agentPushNotifEnabled?: boolean
 
-  // Claude Code usage tracking
-  claudeCodeFirstTokenDate?: string // ISO timestamp of the user's first Claude Code OAuth token
+  // Unshackled usage tracking
+  claudeCodeFirstTokenDate?: string // ISO timestamp of the user's first Unshackled OAuth token
 
   // Model switch callout tracking (ant-only)
   modelSwitchCalloutDismissed?: boolean // Whether user chose "Don't show again"
@@ -519,7 +519,7 @@ export type GlobalConfig = {
   lspRecommendationNeverPlugins?: string[] // Plugin IDs to never suggest
   lspRecommendationIgnoredCount?: number // Track ignored recommendations (stops after 5)
 
-  // Claude Code hint protocol state (<claude-code-hint /> tags from CLIs/SDKs).
+  // Unshackled hint protocol state (<claude-code-hint /> tags from CLIs/SDKs).
   // Nested by hint type so future types (docs, mcp, ...) slot in without new
   // top-level keys.
   claudeCodeHints?: {
@@ -577,7 +577,7 @@ export type GlobalConfig = {
 
   // Disk cache for /api/claude_code/organizations/metrics_enabled.
   // Org-level settings change rarely; persisting across processes avoids a
-  // cold API call on every `claude -p` invocation.
+  // cold API call on every `unshackled -p` invocation.
   metricsStatusCache?: {
     enabled: boolean
     timestamp: number
@@ -1380,7 +1380,7 @@ export function enableConfigs(): void {
  * Uses ~/.claude/backups/ to keep the home directory clean.
  */
 function getConfigBackupDir(): string {
-  return join(getClaudeConfigHomeDir(), 'backups')
+  return join(getUnshackledConfigHomeDir(), 'backups')
 }
 
 /**
@@ -1801,7 +1801,7 @@ export function getMemoryPath(memoryType: MemoryType): string {
 
   switch (memoryType) {
     case 'User':
-      return join(getClaudeConfigHomeDir(), 'CLAUDE.md')
+      return join(getUnshackledConfigHomeDir(), 'CLAUDE.md')
     case 'Local':
       return join(cwd, 'CLAUDE.local.md')
     case 'Project':
@@ -1823,7 +1823,7 @@ export function getManagedClaudeRulesDir(): string {
 }
 
 export function getUserClaudeRulesDir(): string {
-  return join(getClaudeConfigHomeDir(), 'rules')
+  return join(getUnshackledConfigHomeDir(), 'rules')
 }
 
 // Exported for testing only

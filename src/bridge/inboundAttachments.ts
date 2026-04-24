@@ -18,7 +18,7 @@ import { basename, join } from 'path'
 import { z } from 'zod/v4'
 import { getSessionId } from '../bootstrap/state.js'
 import { logForDebugging } from '../utils/debug.js'
-import { getClaudeConfigHomeDir } from '../utils/envUtils.js'
+import { getUnshackledConfigHomeDir } from '../utils/envUtils.js'
 import { lazySchema } from '../utils/lazySchema.js'
 import { getBridgeAccessToken, getBridgeBaseUrl } from './bridgeConfig.js'
 
@@ -58,7 +58,7 @@ function sanitizeFileName(name: string): string {
 }
 
 function uploadsDir(): string {
-  return join(getClaudeConfigHomeDir(), 'uploads', getSessionId())
+  return join(getUnshackledConfigHomeDir(), 'uploads', getSessionId())
 }
 
 /**

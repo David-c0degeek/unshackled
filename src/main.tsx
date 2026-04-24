@@ -539,7 +539,7 @@ function initializeEntrypoint(isNonInteractive: boolean): void {
   process.env.CLAUDE_CODE_ENTRYPOINT = isNonInteractive ? 'sdk-cli' : 'cli';
 }
 
-// Set by early argv processing when `claude open <url>` is detected (interactive mode only)
+// Set by early argv processing when `unshackled open <url>` is detected (interactive mode only)
 type PendingConnect = {
   url: string | undefined;
   authToken: string | undefined;
@@ -551,7 +551,7 @@ const _pendingConnect: PendingConnect | undefined = feature('DIRECT_CONNECT') ? 
   dangerouslySkipPermissions: false
 } : undefined;
 
-// Set by early argv processing when `claude assistant [sessionId]` is detected
+// Set by early argv processing when `unshackled assistant [sessionId]` is detected
 type PendingAssistantChat = {
   sessionId?: string;
   discover: boolean;
@@ -561,7 +561,7 @@ const _pendingAssistantChat: PendingAssistantChat | undefined = feature('KAIROS'
   discover: false
 } : undefined;
 
-// `claude ssh <host> [dir]` — parsed from argv early (same pattern as
+// `unshackled ssh <host> [dir]` — parsed from argv early (same pattern as
 // DIRECT_CONNECT above) so the main command path can pick it up and hand
 // the REPL an SSH-backed session instead of a local one.
 type PendingSSH = {
@@ -676,10 +676,10 @@ export async function main() {
     }
   }
 
-  // `claude assistant [sessionId]` — stash and strip so the main
+  // `unshackled assistant [sessionId]` — stash and strip so the main
   // command handles it, giving the full interactive TUI. Position-0 only
   // (matching the ssh pattern below) — indexOf would false-positive on
-  // `claude -p "explain assistant"`. Root-flag-before-subcommand
+  // `unshackled -p "explain assistant"`. Root-flag-before-subcommand
   // (e.g. `--debug assistant`) falls through to the stub, which
   // prints usage.
   if (feature('KAIROS') && _pendingAssistantChat) {
@@ -695,11 +695,11 @@ export async function main() {
         rawArgs.splice(0, 1); // drop 'assistant'
         process.argv = [process.argv[0]!, process.argv[1]!, ...rawArgs];
       }
-      // else: `claude assistant --help` → fall through to stub
+      // else: `unshackled assistant --help` → fall through to stub
     }
   }
 
-  // `claude ssh <host> [dir]` — strip from argv so the main command handler
+  // `unshackled ssh <host> [dir]` — strip from argv so the main command handler
   // runs (full interactive TUI), stash the host/dir for the REPL branch at
   // ~line 3720 to pick up. Headless (-p) mode not supported in v1: SSH
   // sessions need the local REPL to drive them (interrupt, permissions).
@@ -708,7 +708,7 @@ export async function main() {
     // SSH-specific flags can appear before the host positional (e.g.
     // `ssh --permission-mode auto host /tmp` — standard POSIX flags-before-
     // positionals). Pull them all out BEFORE checking whether a host was
-    // given, so `claude ssh --permission-mode auto host` and `claude ssh host
+    // given, so `unshackled ssh --permission-mode auto host` and `unshackled ssh host
     // --permission-mode auto` are equivalent. The host check below only needs
     // to guard against `-h`/`--help` (which commander should handle).
     if (rawCliArgs[0] === 'ssh') {
@@ -842,7 +842,7 @@ export async function main() {
     setQuestionPreviewFormat('markdown');
   }
 
-  // Tag sessions created via `claude remote-control` so the backend can identify them
+  // Tag sessions created via `unshackled remote-control` so the backend can identify them
   if (process.env.CLAUDE_CODE_ENVIRONMENT_KIND === 'bridge') {
     setSessionSource('remote-control');
   }
@@ -956,7 +956,7 @@ async function run(): Promise<CommanderCommand> {
     // OSS build: skip settings sync upload (all no-op)
     profileCheckpoint('preAction_after_settings_sync');
   });
-  program.name('claude').description(`Claude Code - starts an interactive session by default, use -p/--print for non-interactive output`).argument('[prompt]', 'Your prompt', String)
+  program.name('claude').description(`Unshackled - starts an interactive session by default, use -p/--print for non-interactive output`).argument('[prompt]', 'Your prompt', String)
   // Subcommands inherit helpOption via commander's copyInheritedSettings —
   // setting it once here covers mcp, plugin, auth, and all other subcommands.
   .helpOption('-h, --help', 'Display help for command').option('-d, --debug [filter]', 'Enable debug mode with optional category filtering (e.g., "api,hooks" or "!1p,!file")', (_value: string | true) => {
@@ -990,7 +990,7 @@ async function run(): Promise<CommanderCommand> {
     return value;
   })).option('--agent <agent>', `Agent for the current session. Overrides the 'agent' setting.`).option('--betas <betas...>', 'Beta headers to include in API requests (API key users only)').option('--fallback-model <model>', 'Enable automatic fallback to specified model when default model is overloaded (only works with --print)').addOption(new Option('--workload <tag>', 'Workload tag for billing-header attribution (cc_workload). Process-scoped; set by SDK daemon callers that spawn subprocesses for cron work. (only works with --print)').hideHelp()).option('--settings <file-or-json>', 'Path to a settings JSON file or a JSON string to load additional settings from').option('--add-dir <directories...>', 'Additional directories to allow tool access to').option('--ide', 'Automatically connect to IDE on startup if exactly one valid IDE is available', () => true).option('--strict-mcp-config', 'Only use MCP servers from --mcp-config, ignoring all other MCP configurations', () => true).option('--session-id <uuid>', 'Use a specific session ID for the conversation (must be a valid UUID)').option('-n, --name <name>', 'Set a display name for this session (shown in /resume and terminal title)').option('--agents <json>', 'JSON object defining custom agents (e.g. \'{"reviewer": {"description": "Reviews code", "prompt": "You are a code reviewer"}}\')').option('--setting-sources <sources>', 'Comma-separated list of setting sources to load (user, project, local).')
   // gh-33508: <paths...> (variadic) consumed everything until the next
-  // --flag. `claude --plugin-dir /path mcp add --transport http` swallowed
+  // --flag. `unshackled --plugin-dir /path mcp add --transport http` swallowed
   // `mcp` and `add` as paths, then choked on --transport as an unknown
   // top-level option. Single-value + collect accumulator means each
   // --plugin-dir takes exactly one arg; repeat the flag for multiple dirs.
@@ -1010,7 +1010,7 @@ async function run(): Promise<CommanderCommand> {
     if (prompt === 'code') {
       logEvent('tengu_code_prompt_ignored', {});
       // biome-ignore lint/suspicious/noConsole:: intentional console output
-      console.warn(chalk.yellow('Tip: You can launch Claude Code with just `claude`'));
+      console.warn(chalk.yellow('Tip: You can launch Unshackled with just `unshackled`'));
       prompt = undefined;
     }
 
@@ -2515,7 +2515,7 @@ async function run(): Promise<CommanderCommand> {
 
     // Register PID file for concurrent-session detection (~/.claude/sessions/)
     // and fire multi-clauding telemetry. Lives here (not init.ts) so only the
-    // REPL path registers — not subcommands like `claude doctor`. Chained:
+    // REPL path registers — not subcommands like `unshackled doctor`. Chained:
     // count must run after register's write completes or it misses our own file.
     void registerSession().then(registered => {
       if (!registered) return;
@@ -3144,7 +3144,7 @@ async function run(): Promise<CommanderCommand> {
         process.exit(1);
       }
     } else if (feature('DIRECT_CONNECT') && _pendingConnect?.url) {
-      // `claude connect <url>` — full interactive TUI connected to a remote server
+      // `unshackled connect <url>` — full interactive TUI connected to a remote server
       let directConnectConfig;
       try {
         const session = await createDirectConnectSession({
@@ -3181,7 +3181,7 @@ async function run(): Promise<CommanderCommand> {
       }, renderAndRun);
       return;
     } else if (feature('SSH_REMOTE') && _pendingSSH?.host) {
-      // `claude ssh <host> [dir]` — probe remote, deploy binary if needed,
+      // `unshackled ssh <host> [dir]` — probe remote, deploy binary if needed,
       // spawn ssh with unix-socket -R forward to a local auth proxy, hand
       // the REPL an SSHSession. Tools run remotely, UI renders locally.
       // `--local` skips probe/deploy/ssh and spawns the current binary
@@ -3247,7 +3247,7 @@ async function run(): Promise<CommanderCommand> {
       }, renderAndRun);
       return;
     } else if (feature('KAIROS') && _pendingAssistantChat && (_pendingAssistantChat.sessionId || _pendingAssistantChat.discover)) {
-      // `claude assistant [sessionId]` — REPL as a pure viewer client
+      // `unshackled assistant [sessionId]` — REPL as a pure viewer client
       // of a remote assistant session. The agentic loop runs remotely; this
       // process streams live events and POSTs messages. History is lazy-
       // loaded by useAssistantHistory on scroll-up (no blocking fetch here).
@@ -3277,7 +3277,7 @@ async function run(): Promise<CommanderCommand> {
           }
           // The daemon needs a few seconds to spin up its worker and
           // establish a bridge session before discovery will find it.
-          return await exitWithMessage(root, `Assistant installed in ${installedDir}. The daemon is starting up — run \`claude assistant\` again in a few seconds to connect.`, {
+          return await exitWithMessage(root, `Assistant installed in ${installedDir}. The daemon is starting up — run \`unshackled assistant\` again in a few seconds to connect.`, {
             exitCode: 0,
             beforeExit: () => gracefulShutdown(0)
           });
@@ -3388,7 +3388,7 @@ async function run(): Promise<CommanderCommand> {
         }
       }
 
-      // --remote and --teleport both create/resume Claude Code Web (CCR) sessions.
+      // --remote and --teleport both create/resume Unshackled Web (CCR) sessions.
       // Remote Control (--rc) is a separate feature gated in initReplBridge.ts.
       if (remote !== null || teleport) {
         await waitForPolicyLimitsToLoad();
@@ -3795,7 +3795,7 @@ async function run(): Promise<CommanderCommand> {
         pendingHookMessages
       }, renderAndRun);
     }
-  }).version(`${MACRO.VERSION} (Claude Code)`, '-v, --version', 'Output the version number');
+  }).version(`${MACRO.VERSION} (Unshackled)`, '-v, --version', 'Output the version number');
 
   // Worktree flags
   program.option('-w, --worktree [name]', 'Create a new git worktree for this session (optionally specify a name)');
@@ -3882,7 +3882,7 @@ async function run(): Promise<CommanderCommand> {
   // claude mcp
 
   const mcp = program.command('mcp').description('Configure and manage MCP servers').configureHelp(createSortedHelpConfig()).enablePositionalOptions();
-  mcp.command('serve').description(`Start the Claude Code MCP server`).option('-d, --debug', 'Enable debug mode', () => true).option('--verbose', 'Override verbose mode setting from config', () => true).action(async ({
+  mcp.command('serve').description(`Start the Unshackled MCP server`).option('-d, --debug', 'Enable debug mode', () => true).option('--verbose', 'Override verbose mode setting from config', () => true).action(async ({
     debug,
     verbose
   }: {
@@ -3949,7 +3949,7 @@ async function run(): Promise<CommanderCommand> {
 
   // claude server
   if (feature('DIRECT_CONNECT')) {
-    program.command('server').description('Start a Claude Code session server').option('--port <number>', 'HTTP port', '0').option('--host <string>', 'Bind address', '0.0.0.0').option('--auth-token <token>', 'Bearer token for auth').option('--unix <path>', 'Listen on a unix domain socket').option('--workspace <dir>', 'Default working directory for sessions that do not specify cwd').option('--idle-timeout <ms>', 'Idle timeout for detached sessions in ms (0 = never expire)', '600000').option('--max-sessions <n>', 'Maximum concurrent sessions (0 = unlimited)', '32').action(async (opts: {
+    program.command('server').description('Start a Unshackled session server').option('--port <number>', 'HTTP port', '0').option('--host <string>', 'Bind address', '0.0.0.0').option('--auth-token <token>', 'Bearer token for auth').option('--unix <path>', 'Listen on a unix domain socket').option('--workspace <dir>', 'Default working directory for sessions that do not specify cwd').option('--idle-timeout <ms>', 'Idle timeout for detached sessions in ms (0 = never expire)', '600000').option('--max-sessions <n>', 'Maximum concurrent sessions (0 = unlimited)', '32').action(async (opts: {
       port: string;
       host: string;
       authToken?: string;
@@ -4027,17 +4027,17 @@ async function run(): Promise<CommanderCommand> {
     });
   }
 
-  // `claude ssh <host> [dir]` — registered here only so --help shows it.
+  // `unshackled ssh <host> [dir]` — registered here only so --help shows it.
   // The actual interactive flow is handled by early argv rewriting in main()
   // (parallels the DIRECT_CONNECT/cc:// pattern above). If commander reaches
   // this action it means the argv rewrite didn't fire (e.g. user ran
-  // `claude ssh` with no host) — just print usage.
+  // `unshackled ssh` with no host) — just print usage.
   if (feature('SSH_REMOTE')) {
-    program.command('ssh <host> [dir]').description('Run Claude Code on a remote host over SSH. Deploys the binary and ' + 'tunnels API auth back through your local machine — no remote setup needed.').option('--permission-mode <mode>', 'Permission mode for the remote session').option('--dangerously-skip-permissions', 'Skip all permission prompts on the remote (dangerous)').option('--local', 'e2e test mode — spawn the child CLI locally (skip ssh/deploy). ' + 'Exercises the auth proxy and unix-socket plumbing without a remote host.').action(async () => {
+    program.command('ssh <host> [dir]').description('Run Unshackled on a remote host over SSH. Deploys the binary and ' + 'tunnels API auth back through your local machine — no remote setup needed.').option('--permission-mode <mode>', 'Permission mode for the remote session').option('--dangerously-skip-permissions', 'Skip all permission prompts on the remote (dangerous)').option('--local', 'e2e test mode — spawn the child CLI locally (skip ssh/deploy). ' + 'Exercises the auth proxy and unix-socket plumbing without a remote host.').action(async () => {
       // Argv rewriting in main() should have consumed `ssh <host>` before
       // commander runs. Reaching here means host was missing or the
       // rewrite predicate didn't match.
-      process.stderr.write('Usage: claude ssh <user@host | ssh-config-alias> [dir]\n\n' + "Runs Claude Code on a remote Linux host. You don't need to install\n" + 'anything on the remote or run `claude auth login` there — the binary is\n' + 'deployed over SSH and API auth tunnels back through your local machine.\n');
+      process.stderr.write('Usage: claude ssh <user@host | ssh-config-alias> [dir]\n\n' + "Runs Unshackled on a remote Linux host. You don't need to install\n" + 'anything on the remote or run `unshackled auth login` there — the binary is\n' + 'deployed over SSH and API auth tunnels back through your local machine.\n');
       process.exit(1);
     });
   }
@@ -4046,7 +4046,7 @@ async function run(): Promise<CommanderCommand> {
   // Interactive mode (without -p) is handled by early argv rewriting in main()
   // which redirects to the main command with full TUI support.
   if (feature('DIRECT_CONNECT')) {
-    program.command('open <cc-url>').description('Connect to a Claude Code server (internal — use cc:// URLs)').option('-p, --print [prompt]', 'Print mode (headless)').option('--output-format <format>', 'Output format: text, json, stream-json', 'text').action(async (ccUrl: string, opts: {
+    program.command('open <cc-url>').description('Connect to a Unshackled server (internal — use cc:// URLs)').option('-p, --print [prompt]', 'Print mode (headless)').option('--output-format <format>', 'Output format: text, json, stream-json', 'text').action(async (ccUrl: string, opts: {
       print?: string | boolean;
       outputFormat: string;
     }) => {
@@ -4135,7 +4135,7 @@ async function run(): Promise<CommanderCommand> {
   const coworkOption = () => new Option('--cowork', 'Use cowork_plugins directory').hideHelp();
 
   // Plugin validate command
-  const pluginCmd = program.command('plugin').alias('plugins').description('Manage Claude Code plugins').configureHelp(createSortedHelpConfig());
+  const pluginCmd = program.command('plugin').alias('plugins').description('Manage Unshackled plugins').configureHelp(createSortedHelpConfig());
   pluginCmd.command('validate <path>').description('Validate a plugin or marketplace manifest').addOption(coworkOption()).action(async (manifestPath: string, options: {
     cowork?: boolean;
   }) => {
@@ -4158,7 +4158,7 @@ async function run(): Promise<CommanderCommand> {
   });
 
   // Marketplace subcommands
-  const marketplaceCmd = pluginCmd.command('marketplace').description('Manage Claude Code marketplaces').configureHelp(createSortedHelpConfig());
+  const marketplaceCmd = pluginCmd.command('marketplace').description('Manage Unshackled marketplaces').configureHelp(createSortedHelpConfig());
   marketplaceCmd.command('add <source>').description('Add a marketplace from a URL, path, or GitHub repo').addOption(coworkOption()).option('--sparse <paths...>', 'Limit checkout to specific directories via git sparse-checkout (for monorepos). Example: --sparse .claude-plugin plugins').option('--scope <scope>', 'Where to declare the marketplace: user (default), project, or local').action(async (source: string, options: {
     cowork?: boolean;
     sparse?: string[];
@@ -4333,7 +4333,7 @@ async function run(): Promise<CommanderCommand> {
   }
 
   // Doctor command - check installation health
-  program.command('doctor').description('Check the health of your Claude Code auto-updater. Note: The workspace trust dialog is skipped and stdio servers from .mcp.json are spawned for health checks. Only use this command in directories you trust.').action(async () => {
+  program.command('doctor').description('Check the health of your Unshackled auto-updater. Note: The workspace trust dialog is skipped and stdio servers from .mcp.json are spawned for health checks. Only use this command in directories you trust.').action(async () => {
     const [{
       doctorHandler
     }, {
@@ -4382,7 +4382,7 @@ async function run(): Promise<CommanderCommand> {
   }
 
   // claude install
-  program.command('install [target]').description('Install Claude Code native build. Use [target] to specify version (stable, latest, or specific version)').option('--force', 'Force installation even if already installed').action(async (target: string | undefined, options: {
+  program.command('install [target]').description('Install Unshackled native build. Use [target] to specify version (stable, latest, or specific version)').option('--force', 'Force installation even if already installed').action(async (target: string | undefined, options: {
     force?: boolean;
   }) => {
     const {

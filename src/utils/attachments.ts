@@ -194,7 +194,7 @@ import {
   isThinkingMessage,
 } from './messages.js'
 import { isHumanTurn } from './messagePredicates.js'
-import { isEnvTruthy, getClaudeConfigHomeDir } from './envUtils.js'
+import { isEnvTruthy, getUnshackledConfigHomeDir } from './envUtils.js'
 import { feature } from 'bun:bundle'
 /* eslint-disable @typescript-eslint/no-require-imports */
 const BRIEF_TOOL_NAME: string | null =
@@ -2619,7 +2619,7 @@ export function resetSentSkillNames(): void {
  * on --resume when a skill_listing attachment already exists in the
  * transcript.
  *
- * `sentSkillNames` is module-scope — process-local. Each `claude -p` spawn
+ * `sentSkillNames` is module-scope — process-local. Each `unshackled -p` spawn
  * starts with an empty Map, so without this every resume re-injects the
  * full ~600-token listing even though it's already in the conversation from
  * the prior process. Shows up on every --resume; particularly loud for
@@ -3519,7 +3519,7 @@ async function getAsyncHookResponseAttachments(): Promise<Attachment[]> {
 
 /**
  * Get teammate mailbox attachments for agent swarm communication
- * Teammates are independent Claude Code sessions running in parallel (swarms),
+ * Teammates are independent Unshackled sessions running in parallel (swarms),
  * not parent-child subagent relationships.
  *
  * This function checks two sources for messages:
@@ -3788,7 +3788,7 @@ function getTeamContextAttachment(messages: Message[]): Attachment[] {
     return []
   }
 
-  const configDir = getClaudeConfigHomeDir()
+  const configDir = getUnshackledConfigHomeDir()
   const teamConfigPath = `${configDir}/teams/${teamName}/config.json`
   const taskListPath = `${configDir}/tasks/${teamName}/`
 

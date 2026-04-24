@@ -2,19 +2,19 @@ import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'
 
-// Memoized: 150+ callers, many on hot paths. Keyed off CLAUDE_CONFIG_DIR so
+// Memoized: 150+ callers, many on hot paths. Keyed off UNSHACKLED_CONFIG_DIR so
 // tests that change the env var get a fresh value without explicit cache.clear.
-export const getClaudeConfigHomeDir = memoize(
+export const getUnshackledConfigHomeDir = memoize(
   (): string => {
     return (
-      process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude')
+      process.env.UNSHACKLED_CONFIG_DIR ?? join(homedir(), '.unshackled')
     ).normalize('NFC')
   },
-  () => process.env.CLAUDE_CONFIG_DIR,
+  () => process.env.UNSHACKLED_CONFIG_DIR,
 )
 
 export function getTeamsDir(): string {
-  return join(getClaudeConfigHomeDir(), 'teams')
+  return join(getUnshackledConfigHomeDir(), 'teams')
 }
 
 /**
@@ -123,7 +123,7 @@ export function isRunningOnHomespace(): boolean {
 }
 
 /**
- * Conservative check for whether Claude Code is running inside a protected
+ * Conservative check for whether Unshackled is running inside a protected
  * (privileged or ASL3+) COO namespace or cluster.
  *
  * Conservative means: when signals are ambiguous, assume protected. We would

@@ -33,7 +33,7 @@ import { parse } from 'url'
 import xss from 'xss'
 import { MCP_CLIENT_METADATA_URL } from '../../constants/oauth.js'
 import { openBrowser } from '../../utils/browser.js'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { getUnshackledConfigHomeDir } from '../../utils/envUtils.js'
 import { errorMessage, getErrnoCode } from '../../utils/errors.js'
 import * as lockfile from '../../utils/lockfile.js'
 import { logMCPDebug } from '../../utils/log.js'
@@ -365,7 +365,7 @@ export function hasMcpDiscoveryButNoToken(
 /**
  * Revokes a single token on the OAuth server.
  *
- * Per RFC 7009, public clients (like Claude Code) should authenticate by including
+ * Per RFC 7009, public clients (like Unshackled) should authenticate by including
  * client_id in the request body, NOT via an Authorization header. The Bearer token
  * in an Authorization header is meant for resource owner authentication, not client
  * authentication.
@@ -655,7 +655,7 @@ type XaaFailureStage =
  * 3. Save tokens to the same keychain slot as normal OAuth
  *
  * IdP connection details come from settings.xaaIdp (configured once via
- * `claude mcp xaa setup`). Per-server config is just `oauth.xaa: true`
+ * `unshackled mcp xaa setup`). Per-server config is just `oauth.xaa: true`
  * plus the AS clientId/clientSecret.
  *
  * No silent fallback: if `oauth.xaa` is set, XAA is the only path.
@@ -1142,7 +1142,7 @@ export async function performMCPOAuthFlow(
           if (code) {
             res.writeHead(200, { 'Content-Type': 'text/html' })
             res.end(
-              `<h1>Authentication Successful</h1><p>You can close this window. Return to Claude Code.</p>`,
+              `<h1>Authentication Successful</h1><p>You can close this window. Return to Unshackled.</p>`,
             )
             cleanup()
             resolveOnce(code)
@@ -1349,7 +1349,7 @@ export async function performMCPOAuthFlow(
  * retry → 403 again → aborts with "Server returned 403 after trying upscoping",
  * never reaching redirectToAuthorization where step-up scope is persisted.
  * With this flag set, tokens() omits refresh_token so the SDK falls through
- * to the PKCE flow. See github.com/anthropics/claude-code/issues/28258.
+ * to the PKCE flow. See github.com/paoloanzn/unshackled/issues/28258.
  */
 export function wrapFetchWithStepUpDetection(
   baseFetch: FetchLike,
@@ -1416,7 +1416,7 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
 
   get clientMetadata(): OAuthClientMetadata {
     const metadata: OAuthClientMetadata = {
-      client_name: `Claude Code (${this.serverName})`,
+      client_name: `Unshackled (${this.serverName})`,
       redirect_uris: [this.redirectUri],
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
@@ -2091,7 +2091,7 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
     refreshToken: string,
   ): Promise<OAuthTokens | undefined> {
     const serverKey = getServerKey(this.serverName, this.serverConfig)
-    const claudeDir = getClaudeConfigHomeDir()
+    const claudeDir = getUnshackledConfigHomeDir()
     await mkdir(claudeDir, { recursive: true })
     const sanitizedKey = serverKey.replace(/[^a-zA-Z0-9]/g, '_')
     const lockfilePath = join(claudeDir, `mcp-refresh-${sanitizedKey}.lock`)

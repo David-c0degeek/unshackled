@@ -27,7 +27,7 @@ import {
 } from '../../utils/auth.js'
 import { registerCleanup } from '../../utils/cleanupRegistry.js'
 import { logForDebugging } from '../../utils/debug.js'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { getUnshackledConfigHomeDir } from '../../utils/envUtils.js'
 import { safeParseJSON } from '../../utils/json.js'
 import {
   getAPIProvider,
@@ -109,7 +109,7 @@ export function initializePolicyLimitsLoadingPromise(): void {
  * Get the path to the policy limits cache file
  */
 function getCachePath(): string {
-  return join(getClaudeConfigHomeDir(), CACHE_FILENAME)
+  return join(getUnshackledConfigHomeDir(), CACHE_FILENAME)
 }
 
 /**

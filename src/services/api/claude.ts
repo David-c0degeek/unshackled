@@ -2532,7 +2532,7 @@ async function* queryModel(
       // If the streaming failure was itself a 529, count it toward the
       // consecutive-529 budget so total 529s-before-model-fallback is the
       // same whether the overload was hit in streaming or non-streaming mode.
-      // This is a speculative fix for https://github.com/anthropics/claude-code/issues/1513
+      // This is a speculative fix for https://github.com/paoloanzn/unshackled/issues/1513
       // Instrumentation: proves executeNonStreamingRequest was entered (vs. the
       // fallback event firing but the call itself hanging at dispatch).
       logForDiagnosticsNoPII('info', 'cli_nonstreaming_fallback_started')
@@ -3290,7 +3290,7 @@ export async function queryHaiku({
 type QueryWithModelOptions = Omit<Options, 'getToolPermissionContext'>
 
 /**
- * Query a specific model through the Claude Code infrastructure.
+ * Query a specific model through the Unshackled infrastructure.
  * This goes through the full query pipeline including proper authentication,
  * betas, and headers - unlike direct API calls.
  */

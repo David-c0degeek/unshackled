@@ -69,7 +69,7 @@ import { updateSessionName } from './concurrentSessions.js'
 import { getCwd } from './cwd.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
-import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
+import { getUnshackledConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { isFsInaccessible } from './errors.js'
 import type { FileHistorySnapshot } from './fileHistory.js'
 import { formatFileSize } from './format.js'
@@ -196,7 +196,7 @@ export function isEphemeralToolProgress(dataType: unknown): boolean {
 }
 
 export function getProjectsDir(): string {
-  return join(getClaudeConfigHomeDir(), 'projects')
+  return join(getUnshackledConfigHomeDir(), 'projects')
 }
 
 export function getTranscriptPath(): string {
@@ -476,7 +476,7 @@ export function resetProjectFlushStateForTesting(): void {
 
 /**
  * Reset the entire Project singleton for testing.
- * This ensures tests with different CLAUDE_CONFIG_DIR values
+ * This ensures tests with different UNSHACKLED_CONFIG_DIR values
  * don't share stale sessionFile paths.
  */
 export function resetProjectForTesting(): void {
@@ -2673,7 +2673,7 @@ export function saveAiGeneratedTitle(sessionId: UUID, aiTitle: string): void {
 }
 
 /**
- * Append a periodic task summary for `claude ps`. Unlike ai-title this is
+ * Append a periodic task summary for `unshackled ps`. Unlike ai-title this is
  * not re-appended by reAppendSessionMetadata — it's a rolling snapshot of
  * what the agent is doing *now*, so staleness is fine; ps reads the most
  * recent one from the tail.

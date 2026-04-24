@@ -1,5 +1,5 @@
 /**
- * OpenAI Codex API adapter for Claude Code
+ * OpenAI Codex API adapter for Unshackled
  * Provides compatibility layer between Claude's API expectations and OpenAI's Codex API
  */
 
@@ -44,7 +44,7 @@ interface OpenAIResponse {
 }
 
 /**
- * Convert Claude Code message format to OpenAI format
+ * Convert Unshackled message format to OpenAI format
  */
 function convertToOpenAIMessage(message: Message): OpenAIMessage {
   if (typeof message.content === 'string') {
@@ -133,7 +133,7 @@ export async function fetchCodexResponse(
 }
 
 /**
- * Convert OpenAI response to Claude Code format
+ * Convert OpenAI response to Unshackled format
  */
 export function convertFromOpenAIResponse(response: OpenAIResponse): {
   content: string

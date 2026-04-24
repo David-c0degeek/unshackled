@@ -6,7 +6,7 @@ import { checkAndInstallOfficialMarketplace } from '../utils/plugins/officialMar
 import { useStartupNotification } from './notifs/useStartupNotification.js';
 
 /**
- * Hook that handles official marketplace auto-installation and shows
+ * Hook that handles official Claude plugins marketplace auto-installation and shows
  * notifications for success/failure in the bottom right of the REPL.
  */
 export function useOfficialMarketplaceNotification() {

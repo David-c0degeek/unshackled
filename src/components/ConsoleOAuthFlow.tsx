@@ -243,7 +243,7 @@ export function ConsoleOAuthFlow({
           state: 'success'
         });
         void sendNotification({
-          message: 'Claude Code login successful',
+          message: 'Unshackled login successful',
           notificationType: 'auth_success'
         }, terminal);
       }
@@ -398,7 +398,7 @@ function OAuthStatusMessage(t0) {
   switch (oauthStatus.state) {
     case "idle":
       {
-        const t1 = startingMessage ? startingMessage : "Claude Code can be used with your Claude subscription or billed based on API usage through your Console account.";
+        const t1 = startingMessage ? startingMessage : "Unshackled can be used with your Claude subscription or billed based on API usage through your Console account.";
         let t2;
         if ($[0] !== t1) {
           t2 = <Text bold={true}>{t1}</Text>;
@@ -504,7 +504,7 @@ function OAuthStatusMessage(t0) {
         let t2;
         let t3;
         if ($[14] === Symbol.for("react.memo_cache_sentinel")) {
-          t2 = <Text>Claude Code supports Amazon Bedrock, Microsoft Foundry, and Vertex AI. Set the required environment variables, then restart Claude Code.</Text>;
+          t2 = <Text>Unshackled supports Amazon Bedrock, Microsoft Foundry, and Vertex AI. Set the required environment variables, then restart Unshackled.</Text>;
           t3 = <Text>If you are part of an enterprise organization, contact your administrator for setup instructions.</Text>;
           $[14] = t2;
           $[15] = t3;
@@ -598,7 +598,7 @@ function OAuthStatusMessage(t0) {
       {
         let t1;
         if ($[38] === Symbol.for("react.memo_cache_sentinel")) {
-          t1 = <Box flexDirection="column" gap={1}><Box><Spinner /><Text>Creating API key for Claude Code…</Text></Box></Box>;
+          t1 = <Box flexDirection="column" gap={1}><Box><Spinner /><Text>Creating API key for Unshackled…</Text></Box></Box>;
           $[38] = t1;
         } else {
           t1 = $[38];

@@ -3,8 +3,8 @@ import type { Command } from '../commands.js'
 import { isUltrareviewEnabled } from './review/ultrareviewEnabled.js'
 
 // Legal wants the explicit surface name plus a docs link visible before the
-// user triggers, so the description carries "Claude Code on the web" + URL.
-const CCR_TERMS_URL = 'https://code.claude.com/docs/en/claude-code-on-the-web'
+// user triggers, so the description carries "Unshackled on the web" + URL.
+const CCR_TERMS_URL = 'https://code.claude.com/docs/en/unshackled-on-the-web'
 
 const LOCAL_REVIEW_PROMPT = (args: string) => `
       You are an expert code reviewer. Follow these steps:
@@ -48,7 +48,7 @@ const review: Command = {
 const ultrareview: Command = {
   type: 'local-jsx',
   name: 'ultrareview',
-  description: `~10–20 min · Finds and verifies bugs in your branch. Runs in Claude Code on the web. See ${CCR_TERMS_URL}`,
+  description: `~10–20 min · Finds and verifies bugs in your branch. Runs in Unshackled on the web. See ${CCR_TERMS_URL}`,
   isEnabled: () => isUltrareviewEnabled(),
   load: () => import('./review/ultrareviewCommand.js'),
 }

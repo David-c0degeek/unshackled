@@ -7,7 +7,7 @@ import {
 } from '../bootstrap/state.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import {
-  getClaudeConfigHomeDir,
+  getUnshackledConfigHomeDir,
   isEnvDefinedFalsy,
   isEnvTruthy,
 } from '../utils/envUtils.js'
@@ -86,7 +86,7 @@ export function getMemoryBaseDir(): string {
   if (process.env.CLAUDE_CODE_REMOTE_MEMORY_DIR) {
     return process.env.CLAUDE_CODE_REMOTE_MEMORY_DIR
   }
-  return getClaudeConfigHomeDir()
+  return getUnshackledConfigHomeDir()
 }
 
 const AUTO_MEM_DIRNAME = 'memory'
@@ -198,7 +198,7 @@ export function hasAutoMemPathOverride(): boolean {
 /**
  * Returns the canonical git repo root if available, otherwise falls back to
  * the stable project root. Uses findCanonicalGitRoot so all worktrees of the
- * same repo share one auto-memory directory (anthropics/claude-code#24382).
+ * same repo share one auto-memory directory (paoloanzn/unshackled#24382).
  */
 function getAutoMemBase(): string {
   return findCanonicalGitRoot(getProjectRoot()) ?? getProjectRoot()
@@ -217,7 +217,7 @@ function getAutoMemBase(): string {
  * fire per tool-use message per Messages re-render; each miss costs
  * getSettingsForSource × 4 → parseSettingsFile (realpathSync + readFileSync).
  * Keyed on projectRoot so tests that change its mock mid-block recompute;
- * env vars / settings.json / CLAUDE_CONFIG_DIR are session-stable in
+ * env vars / settings.json / UNSHACKLED_CONFIG_DIR are session-stable in
  * production and covered by per-test cache.clear.
  */
 export const getAutoMemPath = memoize(

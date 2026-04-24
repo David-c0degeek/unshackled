@@ -1,9 +1,9 @@
 /**
- * Constants for the official Anthropic plugins marketplace.
+ * Constants for the official Claude plugins marketplace.
  *
  * The official marketplace is hosted on GitHub and provides first-party
- * plugins developed by Anthropic. This file defines the constants needed
- * to install and identify this marketplace.
+ * plugins developed by Anthropic. Our fork supports these plugins. This file
+ * defines the constants needed to install and identify this marketplace.
  */
 
 import type { MarketplaceSource } from './schemas.js'

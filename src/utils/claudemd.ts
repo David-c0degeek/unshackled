@@ -56,7 +56,7 @@ import {
 } from './config.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
-import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
+import { getUnshackledConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { getErrnoCode } from './errors.js'
 import { normalizePathForComparison } from './file.js'
 import { cacheKeys, type FileStateCache } from './fileStateCache.js'
@@ -410,7 +410,7 @@ function handleMemoryFileReadError(error: unknown, filePath: string): void {
     // Don't log the full file path to avoid PII/security issues
     logEvent('tengu_claude_md_permission_error', {
       is_access_error: 1,
-      has_home_dir: filePath.includes(getClaudeConfigHomeDir()) ? 1 : 0,
+      has_home_dir: filePath.includes(getUnshackledConfigHomeDir()) ? 1 : 0,
     })
   }
 }
@@ -780,7 +780,7 @@ export async function processMdRules({
     if (error instanceof Error && error.message.includes('EACCES')) {
       logEvent('tengu_claude_rules_md_permission_error', {
         is_access_error: 1,
-        has_home_dir: rulesDir.includes(getClaudeConfigHomeDir()) ? 1 : 0,
+        has_home_dir: rulesDir.includes(getUnshackledConfigHomeDir()) ? 1 : 0,
       })
     }
     return []
@@ -857,14 +857,14 @@ export const getMemoryFiles = memoize(
     }
 
     // When running from a git worktree nested inside its main repo (e.g.,
-    // .claude/worktrees/<name>/ from `claude -w`), the upward walk passes
+    // .claude/worktrees/<name>/ from `unshackled -w`), the upward walk passes
     // through both the worktree root and the main repo root. Both contain
     // checked-in files like CLAUDE.md and .claude/rules/*.md, so the same
     // content gets loaded twice. Skip Project-type (checked-in) files from
     // directories above the worktree but within the main repo — the worktree
     // already has its own checkout. CLAUDE.local.md is gitignored so it only
     // exists in the main repo and is still loaded.
-    // See: https://github.com/anthropics/claude-code/issues/29599
+    // See: https://github.com/paoloanzn/unshackled/issues/29599
     const gitRoot = findGitRoot(originalCwd)
     const canonicalRoot = findCanonicalGitRoot(originalCwd)
     const isNestedWorktree =

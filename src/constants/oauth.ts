@@ -106,16 +106,16 @@ const PROD_OAUTH_CONFIG = {
   // OpenAI OAuth URLs
   OPENAI_AUTHORIZE_URL: 'https://openai.com/oauth/authorize',
   OPENAI_TOKEN_URL: 'https://openai.com/oauth/token',
-  OPENAI_CLIENT_ID: 'claude-code-client',
+  OPENAI_CLIENT_ID: 'unshackled-client',
   TOKEN_URL: 'https://platform.claude.com/v1/oauth/token',
   API_KEY_URL: 'https://api.anthropic.com/api/oauth/claude_cli/create_api_key',
   ROLES_URL: 'https://api.anthropic.com/api/oauth/claude_cli/roles',
   CONSOLE_SUCCESS_URL:
-    'https://platform.claude.com/buy_credits?returnUrl=/oauth/code/success%3Fapp%3Dclaude-code',
+    'https://platform.claude.com/buy_credits?returnUrl=/oauth/code/success%3Fapp%3Dunshackled',
   CLAUDEAI_SUCCESS_URL:
-    'https://platform.claude.com/oauth/code/success?app=claude-code',
+    'https://platform.claude.com/oauth/code/success?app=unshackled',
   OPENAI_SUCCESS_URL:
-    'https://openai.com/oauth/success?app=claude-code',
+    'https://openai.com/oauth/success?app=unshackled',
   MANUAL_REDIRECT_URL: 'https://platform.claude.com/oauth/code/callback',
   CLIENT_ID: '9d1c250a-e61b-44d9-88ed-5944d1962f5e',
   // No suffix for production config
@@ -127,7 +127,7 @@ const PROD_OAUTH_CONFIG = {
 /**
  * Client ID Metadata Document URL for MCP OAuth (CIMD / SEP-991).
  * When an MCP auth server advertises client_id_metadata_document_supported: true,
- * Claude Code uses this URL as its client_id instead of Dynamic Client Registration.
+ * Unshackled uses this URL as its client_id instead of Dynamic Client Registration.
  * The URL must point to a JSON document hosted by Anthropic.
  * See: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00
  */

@@ -268,7 +268,7 @@ export function dedupPluginMcpServers(
 /**
  * Filter claude.ai connectors, dropping any whose signature matches an enabled
  * manually-configured server. Manual wins: a user who wrote .mcp.json or ran
- * `claude mcp add` expressed higher intent than a connector toggled in the web UI.
+ * `unshackled mcp add` expressed higher intent than a connector toggled in the web UI.
  *
  * Connector keys are `claude.ai <DisplayName>` so they never key-collide with
  * manual servers in the merge — this content-based check catches the case where
@@ -1060,13 +1060,13 @@ export function getMcpConfigByName(name: string): ScopedMcpServerConfig | null {
 }
 
 /**
- * Get Claude Code MCP configurations (excludes claude.ai servers from the
+ * Get Unshackled MCP configurations (excludes claude.ai servers from the
  * returned set — they're fetched separately and merged by callers).
  * This is fast: only local file reads; no awaited network calls on the
  * critical path. The optional extraDedupTargets promise (e.g. the in-flight
  * claude.ai connector fetch) is awaited only after loadAllPluginsCacheOnly() completes,
  * so the two overlap rather than serialize.
- * @returns Claude Code server configurations with appropriate scopes
+ * @returns Unshackled server configurations with appropriate scopes
  */
 export async function getClaudeCodeMcpConfigs(
   dynamicServers: Record<string, ScopedMcpServerConfig> = {},
