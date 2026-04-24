@@ -12,10 +12,9 @@
  * - API returns empty restrictions for users without policy limits
  */
 
-import axios from 'axios'
 import { createHash } from 'crypto'
 import { readFileSync as fsReadFileSync } from 'fs'
-import { unlink, writeFile } from 'fs/promises'
+import { unlink } from 'fs/promises'
 import { join } from 'path'
 import {
   CLAUDE_AI_INFERENCE_SCOPE,
@@ -23,26 +22,21 @@ import {
   OAUTH_BETA_HEADER,
 } from '../../constants/oauth.js'
 import {
-  checkAndRefreshOAuthTokenIfNeeded,
   getAnthropicApiKeyWithSource,
   getClaudeAIOAuthTokens,
 } from '../../utils/auth.js'
 import { registerCleanup } from '../../utils/cleanupRegistry.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
-import { classifyAxiosError } from '../../utils/errors.js'
 import { safeParseJSON } from '../../utils/json.js'
 import {
   getAPIProvider,
   isFirstPartyAnthropicBaseUrl,
 } from '../../utils/model/providers.js'
 import { isEssentialTrafficOnly } from '../../utils/privacyLevel.js'
-import { sleep } from '../../utils/sleep.js'
 import { jsonStringify } from '../../utils/slowOperations.js'
 import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
-import { getRetryDelay } from '../api/withRetry.js'
 import {
-  type PolicyLimitsFetchResult,
   type PolicyLimitsResponse,
   PolicyLimitsResponseSchema,
 } from './types.js'
@@ -53,8 +47,6 @@ function isNodeError(e: unknown): e is NodeJS.ErrnoException {
 
 // Constants
 const CACHE_FILENAME = 'policy-limits.json'
-const FETCH_TIMEOUT_MS = 10000 // 10 seconds
-const DEFAULT_MAX_RETRIES = 5
 const POLLING_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
 // Background polling state
@@ -262,130 +254,6 @@ function getAuthHeaders(): {
 }
 
 /**
- * Fetch policy limits with retry logic and exponential backoff
- */
-async function fetchWithRetry(
-  cachedChecksum?: string,
-): Promise<PolicyLimitsFetchResult> {
-  let lastResult: PolicyLimitsFetchResult | null = null
-
-  for (let attempt = 1; attempt <= DEFAULT_MAX_RETRIES + 1; attempt++) {
-    lastResult = await fetchPolicyLimits(cachedChecksum)
-
-    if (lastResult.success) {
-      return lastResult
-    }
-
-    if (lastResult.skipRetry) {
-      return lastResult
-    }
-
-    if (attempt > DEFAULT_MAX_RETRIES) {
-      return lastResult
-    }
-
-    const delayMs = getRetryDelay(attempt)
-    logForDebugging(
-      `Policy limits: Retry ${attempt}/${DEFAULT_MAX_RETRIES} after ${delayMs}ms`,
-    )
-    await sleep(delayMs)
-  }
-
-  return lastResult!
-}
-
-/**
- * Fetch policy limits (single attempt, no retries)
- */
-async function fetchPolicyLimits(
-  cachedChecksum?: string,
-): Promise<PolicyLimitsFetchResult> {
-  try {
-    await checkAndRefreshOAuthTokenIfNeeded()
-
-    const authHeaders = getAuthHeaders()
-    if (authHeaders.error) {
-      return {
-        success: false,
-        error: 'Authentication required for policy limits',
-        skipRetry: true,
-      }
-    }
-
-    const endpoint = getPolicyLimitsEndpoint()
-    const headers: Record<string, string> = {
-      ...authHeaders.headers,
-      'User-Agent': getClaudeCodeUserAgent(),
-    }
-
-    if (cachedChecksum) {
-      headers['If-None-Match'] = `"${cachedChecksum}"`
-    }
-
-    const response = await axios.get(endpoint, {
-      headers,
-      timeout: FETCH_TIMEOUT_MS,
-      validateStatus: status =>
-        status === 200 || status === 304 || status === 404,
-    })
-
-    // Handle 304 Not Modified - cached version is still valid
-    if (response.status === 304) {
-      logForDebugging('Policy limits: Using cached restrictions (304)')
-      return {
-        success: true,
-        restrictions: null, // Signal that cache is valid
-        etag: cachedChecksum,
-      }
-    }
-
-    // Handle 404 Not Found - no policy limits exist or feature not enabled
-    if (response.status === 404) {
-      logForDebugging('Policy limits: No restrictions found (404)')
-      return {
-        success: true,
-        restrictions: {},
-        etag: undefined,
-      }
-    }
-
-    const parsed = PolicyLimitsResponseSchema().safeParse(response.data)
-    if (!parsed.success) {
-      logForDebugging(
-        `Policy limits: Invalid response format - ${parsed.error.message}`,
-      )
-      return {
-        success: false,
-        error: 'Invalid policy limits format',
-      }
-    }
-
-    logForDebugging('Policy limits: Fetched successfully')
-    return {
-      success: true,
-      restrictions: parsed.data.restrictions,
-    }
-  } catch (error) {
-    // 404 is handled above via validateStatus, so it won't reach here
-    const { kind, message } = classifyAxiosError(error)
-    switch (kind) {
-      case 'auth':
-        return {
-          success: false,
-          error: 'Not authorized for policy limits',
-          skipRetry: true,
-        }
-      case 'timeout':
-        return { success: false, error: 'Policy limits request timeout' }
-      case 'network':
-        return { success: false, error: 'Cannot connect to server' }
-      default:
-        return { success: false, error: message }
-    }
-  }
-}
-
-/**
  * Load restrictions from cache file
  */
 // sync IO: called from sync context (getRestrictionsFromCache -> isPolicyAllowed)
@@ -405,93 +273,15 @@ function loadCachedRestrictions(): PolicyLimitsResponse['restrictions'] | null {
 }
 
 /**
- * Save restrictions to cache file
- */
-async function saveCachedRestrictions(
-  restrictions: PolicyLimitsResponse['restrictions'],
-): Promise<void> {
-  try {
-    const path = getCachePath()
-    const data: PolicyLimitsResponse = { restrictions }
-    await writeFile(path, jsonStringify(data, null, 2), {
-      encoding: 'utf-8',
-      mode: 0o600,
-    })
-    logForDebugging(`Policy limits: Saved to ${path}`)
-  } catch (error) {
-    logForDebugging(
-      `Policy limits: Failed to save - ${error instanceof Error ? error.message : 'unknown error'}`,
-    )
-  }
-}
-
-/**
  * Fetch and load policy limits with file caching
- * Fails open - returns null if fetch fails and no cache exists
+ *
+ * OSS build: no-op — all policies default to allowed.
  */
 async function fetchAndLoadPolicyLimits(): Promise<
   PolicyLimitsResponse['restrictions'] | null
 > {
-  if (!isPolicyLimitsEligible()) {
-    return null
-  }
-
-  const cachedRestrictions = loadCachedRestrictions()
-
-  const cachedChecksum = cachedRestrictions
-    ? computeChecksum(cachedRestrictions)
-    : undefined
-
-  try {
-    const result = await fetchWithRetry(cachedChecksum)
-
-    if (!result.success) {
-      if (cachedRestrictions) {
-        logForDebugging('Policy limits: Using stale cache after fetch failure')
-        sessionCache = cachedRestrictions
-        return cachedRestrictions
-      }
-      return null
-    }
-
-    // Handle 304 Not Modified
-    if (result.restrictions === null && cachedRestrictions) {
-      logForDebugging('Policy limits: Cache still valid (304 Not Modified)')
-      sessionCache = cachedRestrictions
-      return cachedRestrictions
-    }
-
-    const newRestrictions = result.restrictions || {}
-    const hasContent = Object.keys(newRestrictions).length > 0
-
-    if (hasContent) {
-      sessionCache = newRestrictions
-      await saveCachedRestrictions(newRestrictions)
-      logForDebugging('Policy limits: Applied new restrictions successfully')
-      return newRestrictions
-    }
-
-    // Empty restrictions (404 response) - delete cached file if it exists
-    sessionCache = newRestrictions
-    try {
-      await unlink(getCachePath())
-      logForDebugging('Policy limits: Deleted cached file (404 response)')
-    } catch (e) {
-      if (isNodeError(e) && e.code !== 'ENOENT') {
-        logForDebugging(
-          `Policy limits: Failed to delete cached file - ${e.message}`,
-        )
-      }
-    }
-    return newRestrictions
-  } catch {
-    if (cachedRestrictions) {
-      logForDebugging('Policy limits: Using stale cache after error')
-      sessionCache = cachedRestrictions
-      return cachedRestrictions
-    }
-    return null
-  }
+  // OSS build: skip network fetch, return null (all policies allowed)
+  return null
 }
 
 /**
@@ -550,43 +340,24 @@ function getRestrictionsFromCache():
 
 /**
  * Load policy limits during CLI initialization
- * Fails open - if fetch fails, continues without restrictions
- * Also starts background polling to pick up changes mid-session
+ *
+ * OSS build: no-op — all policies default to allowed (fail open).
  */
 export async function loadPolicyLimits(): Promise<void> {
-  if (isPolicyLimitsEligible() && !loadingCompletePromise) {
-    loadingCompletePromise = new Promise(resolve => {
-      loadingCompleteResolve = resolve
-    })
-  }
-
-  try {
-    await fetchAndLoadPolicyLimits()
-
-    if (isPolicyLimitsEligible()) {
-      startBackgroundPolling()
-    }
-  } finally {
-    if (loadingCompleteResolve) {
-      loadingCompleteResolve()
-      loadingCompleteResolve = null
-    }
+  // OSS build: skip network fetch, resolve immediately
+  if (loadingCompleteResolve) {
+    loadingCompleteResolve()
+    loadingCompleteResolve = null
   }
 }
 
 /**
  * Refresh policy limits asynchronously (for auth state changes)
- * Used when login occurs
+ *
+ * OSS build: no-op — all policies default to allowed.
  */
 export async function refreshPolicyLimits(): Promise<void> {
-  await clearPolicyLimitsCache()
-
-  if (!isPolicyLimitsEligible()) {
-    return
-  }
-
-  await fetchAndLoadPolicyLimits()
-  logForDebugging('Policy limits: Refreshed after auth change')
+  // OSS build: skip network fetch
 }
 
 /**
@@ -631,25 +402,11 @@ async function pollPolicyLimits(): Promise<void> {
 
 /**
  * Start background polling for policy limits
+ *
+ * OSS build: no-op — no network polling.
  */
 export function startBackgroundPolling(): void {
-  if (pollingIntervalId !== null) {
-    return
-  }
-
-  if (!isPolicyLimitsEligible()) {
-    return
-  }
-
-  pollingIntervalId = setInterval(() => {
-    void pollPolicyLimits()
-  }, POLLING_INTERVAL_MS)
-  pollingIntervalId.unref()
-
-  if (!cleanupRegistered) {
-    cleanupRegistered = true
-    registerCleanup(async () => stopBackgroundPolling())
-  }
+  // OSS build: skip background polling (no network calls)
 }
 
 /**

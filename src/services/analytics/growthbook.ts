@@ -417,11 +417,13 @@ function syncRemoteEvalToDisk(): void {
 }
 
 /**
- * Check if GrowthBook operations should be enabled
+ * Check if GrowthBook operations should be enabled.
+ *
+ * In the OSS build we always enable it so feature flags work from disk cache,
+ * but all network calls are local-only (no data sent to api.anthropic.com).
  */
 function isGrowthBookEnabled(): boolean {
-  // GrowthBook depends on 1P event logging.
-  return is1PEventLoggingEnabled()
+  return true
 }
 
 /**
@@ -545,66 +547,10 @@ const getGrowthBookClient = memoize(
     })
     client = thisClient
 
-    if (!hasAuth) {
-      // No auth available yet — skip HTTP init, rely on disk-cached values.
-      // initializeGrowthBook() will reset and re-create with auth when available.
-      return { client: thisClient, initialized: Promise.resolve() }
-    }
-
-    const initialized = thisClient
-      .init({ timeout: 5000 })
-      .then(async result => {
-        // Guard: if this client was replaced by a newer one, skip processing
-        if (client !== thisClient) {
-          if (process.env.USER_TYPE === 'ant') {
-            logForDebugging(
-              'GrowthBook: Skipping init callback for replaced client',
-            )
-          }
-          return
-        }
-
-        if (process.env.USER_TYPE === 'ant') {
-          logForDebugging(
-            `GrowthBook initialized successfully, source: ${result.source}, success: ${result.success}`,
-          )
-        }
-
-        const hadFeatures = await processRemoteEvalPayload(thisClient)
-        // Re-check: processRemoteEvalPayload yields at `await setPayload`.
-        // Microtask-only today (no encryption, no sticky-bucket service), but
-        // the guard at the top of this callback runs before that await;
-        // this runs after.
-        if (client !== thisClient) return
-
-        if (hadFeatures) {
-          for (const feature of pendingExposures) {
-            logExposureForFeature(feature)
-          }
-          pendingExposures.clear()
-          syncRemoteEvalToDisk()
-          // Notify subscribers: remoteEvalFeatureValues is populated and
-          // disk is freshly synced. _CACHED_MAY_BE_STALE reads memory first
-          // (#22295), so subscribers see fresh values immediately.
-          refreshed.emit()
-        }
-
-        // Log what features were loaded
-        if (process.env.USER_TYPE === 'ant') {
-          const features = thisClient.getFeatures()
-          if (features) {
-            const featureKeys = Object.keys(features)
-            logForDebugging(
-              `GrowthBook loaded ${featureKeys.length} features: ${featureKeys.slice(0, 10).join(', ')}${featureKeys.length > 10 ? '...' : ''}`,
-            )
-          }
-        }
-      })
-      .catch(error => {
-        if (process.env.USER_TYPE === 'ant') {
-          logError(toError(error))
-        }
-      })
+    // OSS build: skip HTTP init entirely, rely on disk cache.
+    // All feature values come from getFeatureValue_CACHED_MAY_BE_STALE's
+    // disk cache fallback, so no network calls are made.
+    return { client: thisClient, initialized: Promise.resolve() }
 
     // Register cleanup handlers for graceful shutdown (named refs so resetGrowthBook can remove them)
     currentBeforeExitHandler = () => client?.destroy()
@@ -655,9 +601,8 @@ export const initializeGrowthBook = memoize(
 
     await clientWrapper.initialized
 
-    // Set up periodic refresh after successful initialization
-    // This is called here (not separately) so it's always re-established after any reinit
-    setupPeriodicGrowthBookRefresh()
+    // OSS build: skip periodic refresh (no network calls)
+    // Periodic refresh would re-fetch from api.anthropic.com every 6 hours.
 
     return clientWrapper.client
   },
@@ -937,8 +882,7 @@ export async function checkGate_CACHED_OR_BLOCKING(
 /**
  * Refresh GrowthBook after auth changes (login/logout).
  *
- * NOTE: This must destroy and recreate the client because GrowthBook's
- * apiHostRequestHeaders cannot be updated after client creation.
+ * OSS build: no-op except emitting refresh so subscribers re-read from disk.
  */
 export function refreshGrowthBookAfterAuthChange(): void {
   if (!isGrowthBookEnabled()) {
@@ -946,33 +890,11 @@ export function refreshGrowthBookAfterAuthChange(): void {
   }
 
   try {
-    // Reset the client completely to get fresh auth headers
-    // This is necessary because apiHostRequestHeaders can't be updated after creation
+    // Reset the client completely — clears memoize caches and in-memory state.
+    // In the OSS build all feature values come from disk cache, so no network
+    // is needed. Subscribers will re-read from disk on next access.
     resetGrowthBook()
-
-    // resetGrowthBook cleared remoteEvalFeatureValues. If re-init below
-    // times out (hadFeatures=false) or short-circuits on !hasAuth (logout),
-    // the init-callback notify never fires — subscribers stay synced to the
-    // previous account's memoized state. Notify here so they re-read now
-    // (falls to disk cache). If re-init succeeds, they'll notify again with
-    // fresh values; if not, at least they're synced to the post-reset state.
     refreshed.emit()
-
-    // Reinitialize with fresh auth headers and attributes
-    // Track this promise so security gate checks can wait for it.
-    // .catch before .finally: initializeGrowthBook can reject if its sync
-    // helpers throw (getGrowthBookClient, getAuthHeaders, resetGrowthBook —
-    // clientWrapper.initialized itself has its own .catch so never rejects),
-    // and .finally re-settles with the original rejection — the sync
-    // try/catch below cannot catch async rejections.
-    reinitializingPromise = initializeGrowthBook()
-      .catch(error => {
-        logError(toError(error))
-        return null
-      })
-      .finally(() => {
-        reinitializingPromise = null
-      })
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       throw error
@@ -1009,118 +931,44 @@ export function resetGrowthBook(): void {
   envOverridesParsed = false
 }
 
-// Periodic refresh interval (matches Statsig's 6-hour interval)
-const GROWTHBOOK_REFRESH_INTERVAL_MS =
-  process.env.USER_TYPE !== 'ant'
-    ? 6 * 60 * 60 * 1000 // 6 hours
-    : 20 * 60 * 1000 // 20 min (for ants)
-let refreshInterval: ReturnType<typeof setInterval> | null = null
-let beforeExitListener: (() => void) | null = null
+/**
+ * Clear GrowthBook cache (for /clear and /compact).
+ * Resets all in-memory state; disk cache is preserved.
+ */
+export function clearGrowthBookCache(): void {
+  resetGrowthBook()
+}
 
 /**
  * Light refresh - re-fetch features from server without recreating client.
- * Use this for periodic refresh when auth headers haven't changed.
  *
- * Unlike refreshGrowthBookAfterAuthChange() which destroys and recreates the client,
- * this preserves client state and just fetches fresh feature values.
+ * OSS build: no-op — all feature values come from disk cache.
  */
 export async function refreshGrowthBookFeatures(): Promise<void> {
   if (!isGrowthBookEnabled()) {
     return
   }
 
-  try {
-    const growthBookClient = await initializeGrowthBook()
-    if (!growthBookClient) {
-      return
-    }
-
-    await growthBookClient.refreshFeatures()
-
-    // Guard: if this client was replaced during the in-flight refresh
-    // (e.g. refreshGrowthBookAfterAuthChange ran), skip processing the
-    // stale payload. Mirrors the init-callback guard above.
-    if (growthBookClient !== client) {
-      if (process.env.USER_TYPE === 'ant') {
-        logForDebugging(
-          'GrowthBook: Skipping refresh processing for replaced client',
-        )
-      }
-      return
-    }
-
-    // Rebuild remoteEvalFeatureValues from the refreshed payload so that
-    // _BLOCKS_ON_INIT callers (e.g. getMaxVersion for the auto-update kill
-    // switch) see fresh values, not the stale init-time snapshot.
-    const hadFeatures = await processRemoteEvalPayload(growthBookClient)
-    // Same re-check as init path: covers the setPayload yield inside
-    // processRemoteEvalPayload (the guard above only covers refreshFeatures).
-    if (growthBookClient !== client) return
-
-    if (process.env.USER_TYPE === 'ant') {
-      logForDebugging('GrowthBook: Light refresh completed')
-    }
-
-    // Gate on hadFeatures: if the payload was empty/malformed,
-    // remoteEvalFeatureValues wasn't rebuilt — skip both the no-op disk
-    // write and the spurious subscriber churn (clearCommandMemoizationCaches
-    // + getCommands + 4× model re-renders).
-    if (hadFeatures) {
-      syncRemoteEvalToDisk()
-      refreshed.emit()
-    }
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      throw error
-    }
-    logError(toError(error))
-  }
+  // OSS build: skip network refresh, emit to notify subscribers
+  refreshed.emit()
 }
 
 /**
  * Set up periodic refresh of GrowthBook features.
- * Uses light refresh (refreshGrowthBookFeatures) to re-fetch without recreating client.
  *
- * Call this after initialization for long-running sessions to ensure
- * feature values stay fresh. Matches Statsig's 6-hour refresh interval.
+ * OSS build: no-op — all feature values come from disk cache.
  */
 export function setupPeriodicGrowthBookRefresh(): void {
-  if (!isGrowthBookEnabled()) {
-    return
-  }
-
-  // Clear any existing interval to avoid duplicates
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-  }
-
-  refreshInterval = setInterval(() => {
-    void refreshGrowthBookFeatures()
-  }, GROWTHBOOK_REFRESH_INTERVAL_MS)
-  // Allow process to exit naturally - this timer shouldn't keep the process alive
-  refreshInterval.unref?.()
-
-  // Register cleanup listener only once
-  if (!beforeExitListener) {
-    beforeExitListener = () => {
-      stopPeriodicGrowthBookRefresh()
-    }
-    process.once('beforeExit', beforeExitListener)
-  }
+  // OSS build: skip periodic refresh (no network calls)
 }
 
 /**
  * Stop periodic refresh (for testing or cleanup)
+ *
+ * OSS build: no-op — nothing to stop.
  */
 export function stopPeriodicGrowthBookRefresh(): void {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-    refreshInterval = null
-  }
-  if (beforeExitListener) {
-    process.removeListener('beforeExit', beforeExitListener)
-    beforeExitListener = null
-  }
+  // OSS build: no-op
 }
 
 // ============================================================================

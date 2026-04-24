@@ -48,6 +48,10 @@ export function clearSessionCaches(
   preservedAgentIds: ReadonlySet<string> = new Set(),
 ): void {
   const hasPreserved = preservedAgentIds.size > 0
+  // Clear GrowthBook feature cache (OSS build: local-only, but clear on /clear)
+  import('../..//services/analytics/growthbook.js').then(m => {
+    m.clearGrowthBookCache?.()
+  })
   // Clear context caches
   getUserContext.cache.clear?.()
   getSystemContext.cache.clear?.()
