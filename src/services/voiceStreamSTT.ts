@@ -125,7 +125,7 @@ export async function connectVoiceStream(
   // the api.anthropic.com listener (service_definitions.yaml private-api:
   // visibility.external: true). We target that host instead of claude.ai
   // because the claude.ai CF zone uses TLS fingerprinting and challenges
-  // non-browser clients (David-c0degeek/free-code#34094). Same private-api
+  // non-browser clients (David-c0degeek/unshackled#34094). Same private-api
   // pod, same OAuth Bearer auth — just a CF zone that doesn't block us.
   // Desktop dictation still uses claude.ai (Swift URLSession has a
   // browser-class JA3 fingerprint, so CF lets it through).
@@ -511,7 +511,7 @@ export async function connectVoiceStream(
   ws.on('unexpected-response', (req: ClientRequest, res: IncomingMessage) => {
     const status = res.statusCode ?? 0
     // Bun's ws implementation on Windows can fire this event for a
-    // successful 101 Switching Protocols response (David-c0degeek/free-code#40510).
+    // successful 101 Switching Protocols response (David-c0degeek/unshackled#40510).
     // 101 is never a rejection — bail before we destroy a working upgrade.
     if (status === 101) {
       logForDebugging(

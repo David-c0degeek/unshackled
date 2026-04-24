@@ -12,9 +12,9 @@
 
 <p align="center">
   <a href="#quick-install"><img src="https://img.shields.io/badge/install-one--liner-blue?style=flat-square" alt="Install" /></a>
-  <a href="https://github.com/David-c0degeek/free-code/stargazers"><img src="https://img.shields.io/github/stars/David-c0degeek/free-code?style=flat-square" alt="Stars" /></a>
-  <a href="https://github.com/David-c0degeek/free-code/issues"><img src="https://img.shields.io/github/issues/David-c0degeek/free-code?style=flat-square" alt="Issues" /></a>
-  <a href="https://github.com/David-c0degeek/free-code/blob/main/FEATURES.md"><img src="https://img.shields.io/badge/features-88%20flags-orange?style=flat-square" alt="Feature Flags" /></a>
+  <a href="https://github.com/David-c0degeek/unshackled/stargazers"><img src="https://img.shields.io/github/stars/David-c0degeek/unshackled?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/David-c0degeek/unshackled/issues"><img src="https://img.shields.io/github/issues/David-c0degeek/unshackled?style=flat-square" alt="Issues" /></a>
+  <a href="https://github.com/David-c0degeek/unshackled/blob/main/FEATURES.md"><img src="https://img.shields.io/badge/features-88%20flags-orange?style=flat-square" alt="Feature Flags" /></a>
   <a href="#ipfs-mirror"><img src="https://img.shields.io/badge/IPFS-mirrored-teal?style=flat-square" alt="IPFS" /></a>
 </p>
 
@@ -23,7 +23,7 @@
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/David-c0degeek/free-code/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/David-c0degeek/unshackled/main/install.sh | bash
 ```
 
 Checks your system, installs Bun if needed, clones the repo, builds with all experimental features enabled, and symlinks `unshackled` on your PATH.
@@ -175,7 +175,7 @@ curl -fsSL https://bun.sh/install | bash
 ## Build
 
 ```bash
-git clone https://github.com/David-c0degeek/free-code.git
+git clone https://github.com/David-c0degeek/unshackled.git
 cd unshackled
 bun build
 ./cli

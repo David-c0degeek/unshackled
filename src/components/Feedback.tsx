@@ -32,7 +32,7 @@ import TextInput from './TextInput.js';
 
 // This value was determined experimentally by testing the URL length limit
 const GITHUB_URL_LIMIT = 7250;
-const GITHUB_ISSUES_REPO_URL = "external" === 'ant' ? 'https://github.com/David-c0degeek/free-code-internal/issues' : 'https://github.com/David-c0degeek/free-code/issues';
+const GITHUB_ISSUES_REPO_URL = "external" === 'ant' ? 'https://github.com/David-c0degeek/unshackled-internal/issues' : 'https://github.com/David-c0degeek/unshackled/issues';
 type Props = {
   abortSignal: AbortSignal;
   messages: Message[];
