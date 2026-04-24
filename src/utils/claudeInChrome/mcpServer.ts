@@ -18,7 +18,7 @@ import { importClaudeForChromePackage } from './package.js'
 
 const EXTENSION_DOWNLOAD_URL = 'https://claude.ai/chrome'
 const BUG_REPORT_URL =
-  'https://github.com/paoloanzn/unshackled/issues/new?labels=bug,claude-in-chrome'
+  'https://github.com/David-c0degeek/free-code/issues/new?labels=bug,claude-in-chrome'
 
 // String metadata keys safe to forward to analytics. Keys like error_message
 // are excluded because they could contain page content or user data.

@@ -49,7 +49,7 @@ type SessionSpawnerDeps = {
    * compiled binaries (where execPath is the claude binary itself); contains
    * the script path (process.argv[1]) for npm installs where execPath is the
    * node runtime. Without this, node sees --sdk-url as a node option and
-   * exits with "bad option: --sdk-url" (see paoloanzn/unshackled#28334).
+   * exits with "bad option: --sdk-url" (see David-c0degeek/free-code#28334).
    */
   scriptArgs: string[]
   env: NodeJS.ProcessEnv

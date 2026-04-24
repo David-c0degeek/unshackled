@@ -1,7 +1,7 @@
 export const PR_TITLE = 'Add Unshackled GitHub Workflow'
 
 export const GITHUB_ACTION_SETUP_DOCS_URL =
-  'https://github.com/paoloanzn/unshackled-action/blob/main/docs/setup.md'
+  'https://github.com/David-c0degeek/free-code-action/blob/main/docs/setup.md'
 
 export const WORKFLOW_CONTENT = `name: Unshackled
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Run Unshackled
         id: claude
-        uses: paoloanzn/unshackled-action@v1
+        uses: David-c0degeek/free-code-action@v1
         with:
           anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
 
@@ -49,7 +49,7 @@ jobs:
           # prompt: 'Update the pull request description to include a summary of changes.'
 
           # Optional: Add claude_args to customize behavior and configuration
-          # See https://github.com/paoloanzn/unshackled-action/blob/main/docs/usage.md
+          # See https://github.com/David-c0degeek/free-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
           # claude_args: '--allowed-tools Bash(gh pr:*)'
 
@@ -93,7 +93,7 @@ Once the workflow is triggered, Claude will analyze the comment and surrounding 
 allowed_tools: Bash(npm install),Bash(npm run build),Bash(npm run lint),Bash(npm run test)
 \`\`\`
 
-There's more information in the [Unshackled action repo](https://github.com/paoloanzn/unshackled-action).
+There's more information in the [Unshackled action repo](https://github.com/David-c0degeek/free-code-action).
 
 After merging this PR, let's try mentioning @claude in a comment on any PR to get started!`
 
@@ -132,13 +132,13 @@ jobs:
 
       - name: Run Unshackled Review
         id: claude-review
-        uses: paoloanzn/unshackled-action@v1
+        uses: David-c0degeek/free-code-action@v1
         with:
           anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
-          plugin_marketplaces: 'https://github.com/paoloanzn/unshackled.git'
+          plugin_marketplaces: 'https://github.com/David-c0degeek/free-code.git'
           plugins: 'code-review@unshackled-plugins'
           prompt: '/code-review:code-review \${{ github.repository }}/pull/\${{ github.event.pull_request.number }}'
-          # See https://github.com/paoloanzn/unshackled-action/blob/main/docs/usage.md
+          # See https://github.com/David-c0degeek/free-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
 `

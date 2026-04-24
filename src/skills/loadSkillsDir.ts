@@ -113,7 +113,7 @@ export function estimateSkillFrontmatterTokens(skill: Command): number {
  * Uses realpath to resolve symlinks, which is filesystem-agnostic and avoids
  * issues with filesystems that report unreliable inode values (e.g., inode 0 on
  * some virtual/container/NFS filesystems, or precision loss on ExFAT).
- * See: https://github.com/paoloanzn/unshackled/issues/13893
+ * See: https://github.com/David-c0degeek/free-code/issues/13893
  */
 async function getFileIdentity(filePath: string): Promise<string | null> {
   try {
