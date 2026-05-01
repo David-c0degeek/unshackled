@@ -248,8 +248,8 @@ export function LogoV2() {
   }
   const layoutMode = getLayoutMode(columns);
   const userTheme = resolveThemeSetting(getGlobalConfig().theme);
-  const borderTitle = ` ${color("startupAccent", userTheme)("Unshackled v1")} ${color("inactive", userTheme)(`v${version}`)} `;
-  const compactBorderTitle = color("startupAccent", userTheme)(" Unshackled v1 ");
+  const borderTitle = ` ${color("startupAccent", userTheme)("Unshackled")} ${color("inactive", userTheme)(`v${version}`)} `;
+  const compactBorderTitle = color("startupAccent", userTheme)(" Unshackled ");
   if (layoutMode === "compact") {
     let welcomeMessage = formatWelcomeMessage(username);
     if (stringWidth(welcomeMessage) > columns - 4) {
