@@ -294,6 +294,21 @@ async function main(): Promise<void> {
     process.env.CLAUDE_CODE_SIMPLE = '1';
   }
 
+  // --harness: switch to the structured pipeline mode (three-phase: intake → plan → resume)
+  // Instead of the freeform REPL, this runs the harness with rule-enforced steps.
+  if (args.includes('--harness')) {
+    profileCheckpoint('cli_harness_path');
+    const {
+      enableConfigs
+    } = await import('../utils/config.js');
+    enableConfigs();
+    const {
+      harnessMain
+    } = await import('../cli/harness.js');
+    await harnessMain(args.slice(1));
+    return;
+  }
+
   // No special flags detected, load and run the full CLI
   const {
     startCapturingEarlyInput

@@ -1,0 +1,12 @@
+FROM q36plusfast
+
+SYSTEM """
+/no_think
+You are a coding agent. Do not output thinking blocks. Use tools directly and briefly.
+"""
+
+PARAMETER num_ctx 32768
+PARAMETER temperature 0.1
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.05
+PARAMETER num_predict 2048
